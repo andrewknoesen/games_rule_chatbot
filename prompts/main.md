@@ -1,8 +1,7 @@
 <img src="https://r2cdn.perplexity.ai/pplx-full-logo-primary-dark%402x.png" style="height:64px;margin-right:32px"/>
 
-# I want to create a chat bot that I will give access to so that it can answer questions about boardgame rules. I want to use Google agent development kit to build the agent. I also want to use MCPs for this and a vector db.
+# I want to create a chat bot that I will give access to so that it can answer questions about boardgame rules. I want to use Google agent development kit to build the agent. I also want to use MCPs for this and a vector db. Please give me the prompts I should use in order to build this project
 
-please give me the prompts I should use in order to build this project
 
 Based on current information about Google's Agent Development Kit, MCPs, and vector databases, here are the prompts you should use to build your boardgame rules chatbot project:
 

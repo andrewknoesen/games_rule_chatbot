@@ -61,33 +61,33 @@ games_rule_chatbot/
 ├── README.md
 ├── pyproject.toml
 ├── libs/
-│   ├── core/                     # Core business logic
+│   ├── core/                    
 │   │   ├── pyproject.toml
 │   │   └── src/
 │   │       └── games_rule_core/
-│   ├── mcp/                      # MCP server implementation
+│   ├── mcp/                      
 │   │   ├── pyproject.toml
 │   │   └── src/
 │   │       └── games_rule_mcp/
-│   └── vector_store/            # Vector database operations
+│   └── vector_store/            
 │       ├── pyproject.toml
 │       └── src/
 │           └── games_rule_vector/
 ├── infra/
-│   ├── terraform/               # Infrastructure as Code
+│   ├── terraform/               
 │   │   ├── environments/
 │   │   │   ├── dev/
 │   │   │   └── prod/
 │   │   └── modules/
-│   └── kubernetes/             # K8s manifests
+│   └── kubernetes/             
 │       ├── base/
 │       └── overlays/
-├── tests/                      # Integration tests
+├── tests/                      
 │   └── e2e/
-├── scripts/                    # Development scripts
+├── scripts/                    
 │   ├── setup.sh
 │   └── deploy.sh
-└── docker/                     # Docker configurations
+└── docker/                     
     ├── Dockerfile.api
     └── Dockerfile.mcp
 ```

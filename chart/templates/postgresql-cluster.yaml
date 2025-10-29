@@ -11,13 +11,13 @@ spec:
             database: games
             owner: gamesuser
     managed:
-    services:
-      additional:
-        - selectorType: rw
-          serviceTemplate:
-            metadata:
-              name: postgres-lb
-              annotations:
-                metallb.universe.tf/loadBalancerIPs: 192.168.0.253
-            spec:
-              type: LoadBalancer
+      services:
+        additional:
+          - selectorType: rw
+            serviceTemplate:
+              metadata:
+                name: postgres-lb
+                annotations:
+                  metallb.universe.tf/loadBalancerIPs: 192.168.0.253
+              spec:
+                type: LoadBalancer

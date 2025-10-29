@@ -10,3 +10,13 @@ spec:
         initdb:
             database: games
             owner: gamesuser
+    managed:
+    services:
+      additional:
+        - selectorType: rw
+          serviceTemplate:
+            metadata:
+              name: postgres-lb
+            spec:
+              type: LoadBalancer
+              loadBalancerIP: 192.168.0.253

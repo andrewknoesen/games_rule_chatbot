@@ -1,22 +1,16 @@
-# MinIO Tenant configuration
 minio:
-  # Root credentials
   rootUser: admin
   rootPassword: changeme123
-
-  # Tenant sizing
   servers: 1
   volumesPerServer: 4
   storageSize: 10Gi
   storageClassName: local-path
 
-  # LoadBalancer configuration
   loadBalancer:
     enabled: true
-    ip: 192.168.0.254
-    consoleIp: 192.168.0.255
+    apiIp: 192.168.0.254 # IP for MinIO API service
+    consoleIp: 192.168.0.255 # IP for Console service
 
-  # Resource limits
   resources:
     requests:
       cpu: 250m
@@ -25,12 +19,10 @@ minio:
       cpu: 1000m
       memory: 2Gi
 
-  # Buckets to create
   buckets:
     - name: boardgames
       objectLocking: false
 
-  # Users to create
   users:
     - accessKey: gamesuser
       secretKey: gamesuser-password

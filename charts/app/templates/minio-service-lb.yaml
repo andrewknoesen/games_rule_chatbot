@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "minio-tenant.fullname" . }}-api-lb
+  name: {{ .Release.Name }}-api-lb
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "minio-tenant.labels" . | nindent 4 }}
@@ -12,7 +12,7 @@ spec:
   type: LoadBalancer
   selector:
     app: minio
-    v1.min.io/tenant: {{ include "minio-tenant.fullname" . }}
+    v1.min.io/tenant: {{ .Release.Name }}
   ports:
     - name: minio-api
       port: 9000
@@ -22,7 +22,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "minio-tenant.fullname" . }}-console-lb
+  name: {{ .Release.Name }}-console-lb
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "minio-tenant.labels" . | nindent 4 }}
@@ -32,7 +32,7 @@ spec:
   type: LoadBalancer
   selector:
     app: minio
-    v1.min.io/tenant: {{ include "minio-tenant.fullname" . }}
+    v1.min.io/tenant: {{ .Release.Name }}
   ports:
     - name: minio-console
       port: 9090

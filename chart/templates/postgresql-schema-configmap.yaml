@@ -1,0 +1,65 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-postgres-schema
+data:
+  schema.sql: |
+    -- Board Games table
+    CREATE TABLE IF NOT EXISTS games (
+      id SERIAL PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
+      description TEXT,
+      game_types TEXT[],
+      game_mechanics TEXT[],
+      min_players INTEGER NOT NULL CHECK (min_players > 0),
+      max_players INTEGER NOT NULL CHECK (max_players >= min_players),
+      min_playtime_minutes INTEGER CHECK (min_playtime_minutes > 0),
+      max_playtime_minutes INTEGER CHECK (max_playtime_minutes >= min_playtime_minutes),
+      min_age INTEGER CHECK (min_age > 0),
+      complexity_rating DECIMAL(3,2) CHECK (complexity_rating BETWEEN 1.00 AND 5.00),
+      year_published INTEGER,
+      publisher VARCHAR(255),
+      designer VARCHAR(255),
+      minio_rulebook_path VARCHAR(500),
+      minio_image_path VARCHAR(500),
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    -- MinIO Documents (for storing multiple files per game)
+    CREATE TABLE IF NOT EXISTS game_documents (
+      id SERIAL PRIMARY KEY,
+      game_id INTEGER REFERENCES games(id) ON DELETE CASCADE,
+      document_type VARCHAR(50) NOT NULL,
+      minio_bucket VARCHAR(100) NOT NULL,
+      minio_object_path VARCHAR(500) NOT NULL,
+      file_name VARCHAR(255) NOT NULL,
+      file_size_bytes BIGINT,
+      mime_type VARCHAR(100),
+      uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(game_id, minio_bucket, minio_object_path)
+    );
+
+    -- Indexes for performance
+    CREATE INDEX idx_games_name ON games(name);
+    CREATE INDEX idx_games_players ON games(min_players, max_players);
+    CREATE INDEX idx_games_playtime ON games(min_playtime_minutes, max_playtime_minutes);
+    CREATE INDEX idx_game_documents_game_id ON game_documents(game_id);
+    CREATE INDEX idx_game_documents_type ON game_documents(document_type);
+    
+    -- GIN indexes for array columns (fast searching within arrays)
+    CREATE INDEX idx_games_types ON games USING GIN(game_types);
+    CREATE INDEX idx_games_mechanics ON games USING GIN(game_mechanics);
+    
+    -- Function to update the updated_at timestamp
+    CREATE OR REPLACE FUNCTION update_updated_at_column()
+    RETURNS TRIGGER AS $$
+    BEGIN
+      NEW.updated_at = CURRENT_TIMESTAMP;
+      RETURN NEW;
+    END;
+    $$ language 'plpgsql';
+
+    -- Trigger to automatically update updated_at
+    CREATE TRIGGER update_games_updated_at BEFORE UPDATE ON games
+      FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

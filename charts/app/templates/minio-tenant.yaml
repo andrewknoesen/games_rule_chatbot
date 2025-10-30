@@ -1,19 +1,15 @@
 apiVersion: minio.min.io/v2
 kind: Tenant
 metadata:
-  name: {{ .Release.Name }}-minio
+  name: {{ .Release.Name }}
   namespace: {{ .Release.Namespace }}
+  labels:
+      app.kubernetes.io/name: minio-tenant
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/managed-by: {{ .Release.Service }}
 spec:
   image: quay.io/minio/minio:latest
   imagePullPolicy: IfNotPresent
-  
-  ## Add serviceMetadata for custom IPs
-  serviceMetadata:
-    minioServiceAnnotations:
-      metallb.universe.tf/loadBalancerIPs: {{ .Values.minio.loadBalancer.ip }}
-    consoleServiceAnnotations:
-      metallb.universe.tf/loadBalancerIPs: {{ .Values.minio.loadBalancer.consoleIp }}
-  
   pools:
     - name: pool-0
       servers: {{ .Values.minio.servers }}
@@ -34,7 +30,7 @@ spec:
         {{- toYaml .Values.minio.resources | nindent 8 }}
   
   configuration:
-    name: {{ .Release.Name }}-minio-creds
+    name: {{ .Release.Name }}-creds
   
   exposeServices:
     minio: true

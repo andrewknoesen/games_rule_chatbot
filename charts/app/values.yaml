@@ -2,7 +2,7 @@ minio:
   rootUser: admin
   rootPassword: changeme123
   servers: 1
-  volumesPerServer: 4
+  volumesPerServer: 1
   storageSize: 10Gi
   storageClassName: local-path
 

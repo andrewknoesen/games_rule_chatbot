@@ -1,0 +1,41 @@
+{{- if .Values.minio.loadBalancer.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "minio-tenant.fullname" . }}-api-lb
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "minio-tenant.labels" . | nindent 4 }}
+  annotations:
+    metallb.universe.tf/loadBalancerIPs: {{ .Values.minio.loadBalancer.ip }}
+spec:
+  type: LoadBalancer
+  selector:
+    app: minio
+    v1.min.io/tenant: {{ include "minio-tenant.fullname" . }}
+  ports:
+    - name: minio-api
+      port: 9000
+      targetPort: 9000
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "minio-tenant.fullname" . }}-console-lb
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "minio-tenant.labels" . | nindent 4 }}
+  annotations:
+    metallb.universe.tf/loadBalancerIPs: {{ .Values.minio.loadBalancer.consoleIp }}
+spec:
+  type: LoadBalancer
+  selector:
+    app: minio
+    v1.min.io/tenant: {{ include "minio-tenant.fullname" . }}
+  ports:
+    - name: minio-console
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
+{{- end }}

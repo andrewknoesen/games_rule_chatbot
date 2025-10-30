@@ -1,0 +1,56 @@
+apiVersion: minio.min.io/v2
+kind: Tenant
+metadata:
+  name: {{ include "minio-tenant.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "minio-tenant.labels" . | nindent 4 }}
+spec:
+  image: quay.io/minio/minio:latest
+  imagePullPolicy: IfNotPresent
+  
+  pools:
+    - name: pool-0
+      servers: {{ .Values.minio.servers }}
+      volumesPerServer: {{ .Values.minio.volumesPerServer }}
+      volumeClaimTemplate:
+        metadata:
+          name: data
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: {{ .Values.minio.storageSize }}
+          {{- if .Values.minio.storageClassName }}
+          storageClassName: {{ .Values.minio.storageClassName }}
+          {{- end }}
+      resources:
+        {{- toYaml .Values.minio.resources | nindent 8 }}
+  
+  configuration:
+    name: {{ include "minio-tenant.fullname" . }}-creds
+  
+  exposeServices:
+    minio: true
+    console: true
+  
+  features:
+    bucketDNS: false
+  
+  {{- if .Values.minio.buckets }}
+  buckets:
+    {{- range .Values.minio.buckets }}
+    - name: {{ .name }}
+      {{- if .objectLocking }}
+      objectLocking: {{ .objectLocking }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+  
+  {{- if .Values.minio.users }}
+  users:
+    {{- range .Values.minio.users }}
+    - name: {{ .accessKey }}
+    {{- end }}
+  {{- end }}

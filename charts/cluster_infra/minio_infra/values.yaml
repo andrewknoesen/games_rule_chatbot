@@ -1,0 +1,16 @@
+# Operator replicas
+operator:
+  replicaCount: 1
+
+# Console configuration
+console:
+  enabled: true
+
+# Resource limits
+resources:
+  requests:
+    cpu: 200m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi

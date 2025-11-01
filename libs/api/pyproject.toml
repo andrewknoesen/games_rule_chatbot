@@ -5,12 +5,13 @@ build-backend = "hatchling.build"
 [project]
 name = "games_rule_api"
 version = "0.1.0"
-description = "The API component of games_rule_chatbot."
-readme = "README.md"
-requires-python = ">=3.10"
-dependencies = []
+description = "FastAPI component for games_rule_chatbot."
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "pydantic"
+]
 
 [tool.hatch.build.targets.wheel]
-packages = [
-    "src/api"
-]
+packages = ["src/rules_api"]

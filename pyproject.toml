@@ -13,6 +13,7 @@ requires-python = ">=3.10"
 dependencies = [
     "fastapi",
     "pydantic",
+    "pydantic-settings",
     "uvicorn",
 ]
 
@@ -47,11 +48,13 @@ addopts = "-ra -q --cov"
 [dependency-groups]
 dev = [
     "bandit[toml]>=1.8.6",
-    "pytest>=7.0",
-    "pytest-cov",
     "black",
-    "ruff",
     "mypy",
+    "omymodels>=0.8.1",
     "pre-commit",
+    "polyfactory",
+    "pytest-cov",
+    "pytest>=7.0",
+    "ruff",
     "tomli-w>=1.2.0",
 ]

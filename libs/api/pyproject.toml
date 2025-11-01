@@ -10,8 +10,14 @@ requires-python = ">=3.11"
 dependencies = [
     "fastapi",
     "uvicorn",
-    "pydantic"
+    "pydantic",
+    "pydantic-settings",
 ]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/rules_api"]
+
+[dependency-groups]
+dev = [
+    "polyfactory",
+]

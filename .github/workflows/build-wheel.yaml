@@ -82,5 +82,7 @@ jobs:
           UV_PYPI_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
           UV_PYPI_USERNAME: ${{ github.actor }}
         run: |
+          echo "Not yet supported by github"
+          exit 0
           PACKAGE_PATH="libs/${{ inputs.package-path }}"
           uv publish $PACKAGE_PATH/dist/* -- --repository-url https://pip.pkg.github.com/$GITHUB_REPOSITORY_OWNER/

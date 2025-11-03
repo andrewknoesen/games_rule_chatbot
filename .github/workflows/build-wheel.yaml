@@ -36,14 +36,23 @@ jobs:
         run: |
           cd libs/${{ inputs.package-path }}
           uv build
+
       - name: Upload wheels as artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.PACKAGE_NAME }}-${{ env.PACKAGE_VERSION }}
           path: libs/${{ inputs.package-path }}/dist/
+
       - name: Create version tag
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git tag ${{ env.PACKAGE_NAME }}-${{ env.PACKAGE_VERSION }}
           git push origin ${{ env.PACKAGE_NAME }}-${{ env.PACKAGE_VERSION }}
+
+      - name: Create GitHub Release
+        run: |
+          gh release create ${PACKAGE_NAME}-${PACKAGE_VERSION} \
+            --title "${PACKAGE_NAME} ${PACKAGE_VERSION}" \
+            --notes "Automated release for ${PACKAGE_NAME} version ${PACKAGE_VERSION}." \
+            libs/${{ inputs.package-path }}/dist/*

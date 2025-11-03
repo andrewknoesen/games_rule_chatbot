@@ -5,7 +5,7 @@ permissions:
 
 on:
   push:
-    branches: [feature/api_image]
+    branches: [feature/main]
   pull_request:
 
 jobs:

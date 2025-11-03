@@ -5,7 +5,7 @@ permissions:
 
 on:
   push:
-    branches: [feature/main]
+    branches: [main]
 
 jobs:
   build-api:

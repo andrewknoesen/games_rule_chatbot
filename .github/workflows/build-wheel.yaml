@@ -22,6 +22,8 @@ jobs:
           echo "PACKAGE_PATH=$PACKAGE_PATH" >> $GITHUB_ENV
           PACKAGE_VERSION=$(awk -F '"' '/^version =/ {print $2}' $PACKAGE_PATH/pyproject.toml)
           PACKAGE_NAME=$(awk -F '"' '/^name =/ {print $2}' $PACKAGE_PATH/pyproject.toml)
+          echo "PACKAGE_VERSION=$PACKAGE_VERSION"
+          echo "PACKAGE_NAME=$PACKAGE_NAME"
           echo "PACKAGE_VERSION=$PACKAGE_VERSION" >> $GITHUB_ENV
           echo "PACKAGE_NAME=$PACKAGE_NAME" >> $GITHUB_ENV
 
@@ -80,4 +82,4 @@ jobs:
           UV_PYPI_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
           UV_PYPI_USERNAME: ${{ github.actor }}
         run: |
-          uv publish ${{ env.PACKAGE_PATH }}/dist/* -- --repository-url https://pip.pkg.github.com/${{ github.repository_owner }}/
+          uv publish "$PACKAGE_PATH/dist/*" -- --repository-url "https://pip.pkg.github.com/$GITHUB_REPOSITORY_OWNER/"

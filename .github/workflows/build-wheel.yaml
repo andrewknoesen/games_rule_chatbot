@@ -18,7 +18,8 @@ jobs:
       - name: Extract package name and version
         id: package
         run: |
-          echo "PACKAGE_PATH=libs/${{ inputs.package-path }}" >> $GITHUB_ENV
+          PACKAGE_PATH="libs/${{ inputs.package-path }}"
+          echo "PACKAGE_PATH=$PACKAGE_PATH" >> $GITHUB_ENV
           PACKAGE_VERSION=$(awk -F '"' '/^version =/ {print $2}' $PACKAGE_PATH/pyproject.toml)
           PACKAGE_NAME=$(awk -F '"' '/^name =/ {print $2}' $PACKAGE_PATHpyproject.toml)
           echo "PACKAGE_VERSION=$PACKAGE_VERSION" >> $GITHUB_ENV

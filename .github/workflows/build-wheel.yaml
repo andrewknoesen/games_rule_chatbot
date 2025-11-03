@@ -1,5 +1,8 @@
 name: Build and Upload Python Wheel Enforcing Versioning
 
+permissions:
+  contents: write
+
 on:
   workflow_call:
     inputs:

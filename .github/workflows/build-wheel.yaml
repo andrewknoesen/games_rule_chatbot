@@ -82,4 +82,5 @@ jobs:
           UV_PYPI_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
           UV_PYPI_USERNAME: ${{ github.actor }}
         run: |
-          uv publish "$PACKAGE_PATH/dist/*" -- --repository-url "https://pip.pkg.github.com/$GITHUB_REPOSITORY_OWNER/"
+          PACKAGE_PATH="libs/${{ inputs.package-path }}"
+          uv publish $PACKAGE_PATH/dist/* -- --repository-url https://pip.pkg.github.com/$GITHUB_REPOSITORY_OWNER/

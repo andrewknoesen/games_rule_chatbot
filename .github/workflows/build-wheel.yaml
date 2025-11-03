@@ -57,14 +57,14 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - name: Build wheels
         run: |
-          cd $PACKAGE_PATH
+          cd ${PACKAGE_PATH}
           uv build
 
       - name: Upload wheels as artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.PACKAGE_NAME }}-${{ env.PACKAGE_VERSION }}
-          path: $PACKAGE_PATH/dist/
+          path: ${PACKAGE_PATH}/dist/
 
       - name: Create GitHub Release
         env:
@@ -72,5 +72,5 @@ jobs:
         run: |
           gh release create ${PACKAGE_NAME}-${PACKAGE_VERSION} \
             --title "${PACKAGE_NAME}:${PACKAGE_VERSION}" \
-            --notes-file $PACKAGE_PATH/RELEASE.md \
-            $PACKAGE_PATH/dist/*
+            --notes-file ${PACKAGE_PATH}/RELEASE.md \
+            ${PACKAGE_PATH}/dist/*

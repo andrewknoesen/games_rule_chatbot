@@ -34,8 +34,8 @@ jobs:
 
       - name: Validate RELEASE.md for this package and version
         run: |
-          RELEASE_FILE="${PACKAGE_PATH}/RELEASE.md"
-          PYPROJECT="${PACKAGE_PATH}/pyproject.toml"
+          RELEASE_FILE="${{ env.PACKAGE_PATH }}/RELEASE.md"
+          PYPROJECT="${{ env.PACKAGE_PATH }}/pyproject.toml"
 
           awk -v ver="$PACKAGE_VERSION" -v file="$RELEASE_FILE" '
               $0 ~ "^## "ver"$" {found=1; next}
@@ -57,14 +57,14 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - name: Build wheels
         run: |
-          cd ${PACKAGE_PATH}
+          cd ${{ env.PACKAGE_PATH }}
           uv build
 
       - name: Upload wheels as artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.PACKAGE_NAME }}-${{ env.PACKAGE_VERSION }}
-          path: ${PACKAGE_PATH}/dist/
+          path: ${{ env.PACKAGE_PATH }}/dist/
 
       - name: Create GitHub Release
         env:
@@ -72,5 +72,5 @@ jobs:
         run: |
           gh release create ${PACKAGE_NAME}-${PACKAGE_VERSION} \
             --title "${PACKAGE_NAME}:${PACKAGE_VERSION}" \
-            --notes-file ${PACKAGE_PATH}/RELEASE.md \
-            ${PACKAGE_PATH}/dist/*
+            --notes-file ${{ env.PACKAGE_PATH }}/RELEASE.md \
+            ${{ env.PACKAGE_PATH }}/dist/*

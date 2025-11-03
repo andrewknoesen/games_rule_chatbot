@@ -20,6 +20,8 @@ jobs:
         run: |
           PACKAGE_VERSION=$(awk -F '"' '/^version =/ {print $2}' pyproject.toml)
           PACKAGE_NAME=$(awk -F '"' '/^name =/ {print $2}' pyproject.toml)
+          echo "PACKAGE_VERSION=$PACKAGE_VERSION" >> $GITHUB_ENV
+          echo "PACKAGE_NAME=$PACKAGE_NAME" >> $GITHUB_ENV
 
       - name: Check for version tag
         id: check_tag
@@ -43,5 +45,5 @@ jobs:
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git tag ${PACKAGE_NAME}-${PACKAGE_VERSION}
-          git push origin ${PACKAGE_NAME}-${PACKAGE_VERSION}
+          git tag ${{ env.PACKAGE_NAME }}-${{ env.PACKAGE_VERSION }}
+          git push origin ${{ env.PACKAGE_NAME }}-${{ env.PACKAGE_VERSION }}

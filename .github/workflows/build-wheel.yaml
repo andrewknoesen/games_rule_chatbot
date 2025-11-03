@@ -22,6 +22,7 @@ jobs:
           PACKAGE_NAME=$(awk -F '"' '/^name =/ {print $2}' pyproject.toml)
           echo "PACKAGE_VERSION=$PACKAGE_VERSION" >> $GITHUB_ENV
           echo "PACKAGE_NAME=$PACKAGE_NAME" >> $GITHUB_ENV
+          echo "PACKAGE_PATH=libs/${{ inputs.package-path }}" >> $GITHUB_ENV
 
       - name: Check for version tag
         id: check_tag
@@ -33,7 +34,6 @@ jobs:
 
       - name: Validate RELEASE.md for this package and version
         run: |
-          PACKAGE_PATH="libs/${{ inputs.package-path }}"
           RELEASE_FILE="${PACKAGE_PATH}/RELEASE.md"
           PYPROJECT="${PACKAGE_PATH}/pyproject.toml"
 
@@ -57,21 +57,14 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - name: Build wheels
         run: |
-          cd libs/${{ inputs.package-path }}
+          cd $PACKAGE_PATH
           uv build
 
       - name: Upload wheels as artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.PACKAGE_NAME }}-${{ env.PACKAGE_VERSION }}
-          path: libs/${{ inputs.package-path }}/dist/
-
-      - name: Create version tag
-        run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-          git tag ${{ env.PACKAGE_NAME }}-${{ env.PACKAGE_VERSION }}
-          git push origin ${{ env.PACKAGE_NAME }}-${{ env.PACKAGE_VERSION }}
+          path: $PACKAGE_PATH/dist/
 
       - name: Create GitHub Release
         env:
@@ -79,5 +72,5 @@ jobs:
         run: |
           gh release create ${PACKAGE_NAME}-${PACKAGE_VERSION} \
             --title "${PACKAGE_NAME}:${PACKAGE_VERSION}" \
-            --notes-file RELEASE.md \
-            libs/${{ inputs.package-path }}/dist/*
+            --notes-file $PACKAGE_PATH/RELEASE.md \
+            $PACKAGE_PATH/dist/*

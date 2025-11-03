@@ -74,3 +74,9 @@ jobs:
             --title "${PACKAGE_NAME}:${PACKAGE_VERSION}" \
             --notes-file ${{ env.PACKAGE_PATH }}/RELEASE.md \
             ${{ env.PACKAGE_PATH }}/dist/*
+      - name: Publish to GitHub Packages with uv
+        env:
+          UV_PYPI_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+          UV_PYPI_USERNAME: ${{ github.actor }}
+        run: |
+          uv publish --repository-url https://pip.pkg.github.com/${{ github.repository_owner }}/ dist/*

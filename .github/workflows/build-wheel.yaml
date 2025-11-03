@@ -32,13 +32,13 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - name: Build wheels
         run: |
-          cd ${{ inputs.package-path }}
+          cd libs/${{ inputs.package-path }}
           uv build
       - name: Upload wheels as artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.PACKAGE_NAME }}-${{ env.PACKAGE_VERSION }}
-          path: ${{ inputs.package-path }}/dist/
+          path: libs/${{ inputs.package-path }}/dist/
       - name: Create version tag
         run: |
           git config user.name "github-actions"

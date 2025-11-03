@@ -31,6 +31,29 @@ jobs:
             exit 1
           fi
 
+      - name: Validate RELEASE.md for this package and version
+        run: |
+          PACKAGE_PATH="libs/${{ inputs.package-path }}"
+          RELEASE_FILE="${PACKAGE_PATH}/RELEASE.md"
+          PYPROJECT="${PACKAGE_PATH}/pyproject.toml"
+
+          awk -v ver="$PACKAGE_VERSION" -v file="$RELEASE_FILE" '
+              $0 ~ "^## "ver"$" {found=1; next}
+              found && $0 ~ "^## " {exit}
+              found && NF {nonempty=1}
+              END {
+                  if (!found) {
+                      print file ": Release notes section for version " ver " not found." > "/dev/stderr"
+                      exit 1
+                  }
+                  if (!nonempty) {
+                      print file ": Release notes for " ver " are empty." > "/dev/stderr"
+                      exit 1
+                  }
+                  print file ": Release notes for " ver " are present and nonempty."
+              }
+          ' "$RELEASE_FILE"
+
       - uses: astral-sh/setup-uv@v6
       - name: Build wheels
         run: |
@@ -55,6 +78,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release create ${PACKAGE_NAME}-${PACKAGE_VERSION} \
-            --title "${PACKAGE_NAME} ${PACKAGE_VERSION}" \
-            --notes "Automated release for ${PACKAGE_NAME} version ${PACKAGE_VERSION}." \
+            --title "${PACKAGE_NAME}:${PACKAGE_VERSION}" \
+            --notes-file RELEASE.md \
             libs/${{ inputs.package-path }}/dist/*

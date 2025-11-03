@@ -68,3 +68,10 @@ repos:
       - id: bandit
         args: ["-c", "pyproject.toml"]
         additional_dependencies: [".[toml]"]
+  - repo: local
+    hooks:
+      - id: validate-release-notes
+        name: Validate release notes
+        entry: .hooks/validate_release_notes.sh
+        language: script
+        files: ^libs/.*/RELEASE\.md$

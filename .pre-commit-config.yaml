@@ -61,7 +61,7 @@ repos:
     rev: v8.25.1
     hooks:
       - id: gitleaks
-  # python static code analysis(
+  # python static code analysis
   - repo: https://github.com/PyCQA/bandit
     rev: 1.8.3
     hooks:

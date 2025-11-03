@@ -1,0 +1,61 @@
+name: Build and Upload Python Wheel Enforcing Versioning
+
+on:
+  workflow_call:
+    inputs:
+      package-path:
+        required: true
+        type: string
+      wheel-name:
+        required: true
+        type: string
+
+jobs:
+  build-wheel:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extract package name and version
+        id: package
+        run: |
+          import toml
+          with open("${{ inputs.package-path }}/pyproject.toml") as f:
+              data = toml.load(f)
+          name = data["project"]["name"]
+          version = data["project"]["version"]
+          print(f"name={name}")
+          print(f"version={version}")
+          with open("github_output", "w") as out:
+              out.write(f"name={name}\nversion={version}\n")
+        shell: python
+
+      - name: Set package version output
+        run: |
+          . github_output
+          echo "PACKAGE_NAME=$name" >> $GITHUB_ENV
+          echo "PACKAGE_VERSION=$version" >> $GITHUB_ENV
+
+      - name: Check for version tag
+        id: check_tag
+        run: |
+          if git tag | grep -q "^${PACKAGE_NAME}-${PACKAGE_VERSION}$"; then
+            echo "Tag ${PACKAGE_NAME}-${PACKAGE_VERSION} already exists."
+            exit 1
+          fi
+
+      - uses: astral-sh/setup-uv@v6
+      - name: Build wheels
+        run: |
+          cd ${{ inputs.package-path }}
+          uv build
+      - name: Upload wheels as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.PACKAGE_NAME }}-${{ env.PACKAGE_VERSION }}
+          path: ${{ inputs.package-path }}/dist/
+      - name: Create version tag
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git tag ${PACKAGE_NAME}-${PACKAGE_VERSION}
+          git push origin ${PACKAGE_NAME}-${PACKAGE_VERSION}

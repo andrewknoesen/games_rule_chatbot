@@ -3,7 +3,7 @@ from typing import Any
 
 from fastapi import APIRouter, Depends
 
-from rules_api.config import Settings
+from rules_api.api.config import Settings
 
 router = APIRouter()
 

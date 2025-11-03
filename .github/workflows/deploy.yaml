@@ -1,0 +1,13 @@
+name: Build Python package and upload artifact
+
+on:
+  push:
+    branches: [feature/api_image]
+  pull_request:
+
+jobs:
+  build-api:
+    uses: ./.github/workflows/build-wheel.yml
+    with:
+      package-path: api
+      wheel-name: api-wheel

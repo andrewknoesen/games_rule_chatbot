@@ -18,22 +18,8 @@ jobs:
       - name: Extract package name and version
         id: package
         run: |
-          import toml
-          with open("${{ inputs.package-path }}/pyproject.toml") as f:
-              data = toml.load(f)
-          name = data["project"]["name"]
-          version = data["project"]["version"]
-          print(f"name={name}")
-          print(f"version={version}")
-          with open("github_output", "w") as out:
-              out.write(f"name={name}\nversion={version}\n")
-        shell: python
-
-      - name: Set package version output
-        run: |
-          . github_output
-          echo "PACKAGE_NAME=$name" >> $GITHUB_ENV
-          echo "PACKAGE_VERSION=$version" >> $GITHUB_ENV
+          PACKAGE_VERSION=$(awk -F '"' '/^version =/ {print $2}' pyproject.toml)
+          PACKAGE_NAME=$(awk -F '"' '/^name =/ {print $2}' pyproject.toml)
 
       - name: Check for version tag
         id: check_tag

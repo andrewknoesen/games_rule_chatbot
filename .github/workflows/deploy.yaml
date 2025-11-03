@@ -1,5 +1,8 @@
 name: Build Python package and upload artifact
 
+permissions:
+  contents: write
+
 on:
   push:
     branches: [feature/api_image]

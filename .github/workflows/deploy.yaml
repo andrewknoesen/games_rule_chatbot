@@ -7,7 +7,7 @@ on:
 
 jobs:
   build-api:
-    uses: ./.github/workflows/templates/build-wheel.yaml
+    uses: ./.github/workflows/build-wheel.yaml
     with:
       package-path: api
       wheel-name: api-wheel

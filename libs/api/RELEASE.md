@@ -1,7 +1,7 @@
 # Release Notes
 
 ## 0.2.0
-- Initial release of api package
+- Added polyfactory
 
 ## 0.1.0
 - Initial release of api package

@@ -94,10 +94,11 @@ jobs:
 
       - name: Copy distribution files
         run: |
-          mkdir -p ./simple/${{ env.PACKAGE_NAME }}/
-          cp ${{ env.PACKAGE_PATH }}/dist/*.whl ./simple/${{ env.PACKAGE_NAME }}/
-          cp ${{ env.PACKAGE_PATH }}/dist/*.tar.gz ./simple/${{ env.PACKAGE_NAME }}/
-          python /tmp/generate_pypi_index.py "./simple/${{ env.PACKAGE_NAME }}/"
+          NORMALIZED_NAME=$(echo "${{ env.PACKAGE_NAME }}" | tr '_' '-')
+          mkdir -p ./simple/${NORMALIZED_NAME}/
+          cp ${{ env.PACKAGE_PATH }}/dist/*.whl ./simple/${NORMALIZED_NAME}/ || true
+          cp ${{ env.PACKAGE_PATH }}/dist/*.tar.gz ./simple/${NORMALIZED_NAME}/ || true
+          python /tmp/generate_pypi_index.py "./simple/${NORMALIZED_NAME}/"
 
       - name: Commit and push to gh-pages
         run: |

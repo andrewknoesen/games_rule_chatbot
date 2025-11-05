@@ -9,7 +9,7 @@ name = "games_rule_chatbot"
 version = "0.1.0"
 description = "A chatbot that will be able to answer questions about games that it has the rules of"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = [
     "fastapi",
     "pydantic",
@@ -44,6 +44,11 @@ python_files = [
     "test_*.py",
 ]
 addopts = "-ra -q --cov"
+
+[tool.uv.workspace]
+members = [
+    "docker/api",
+]
 
 [dependency-groups]
 dev = [

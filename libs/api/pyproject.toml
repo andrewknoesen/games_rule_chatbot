@@ -12,12 +12,11 @@ dependencies = [
     "uvicorn",
     "pydantic",
     "pydantic-settings",
+    "polyfactory",
 ]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/rules_api"]
 
 [dependency-groups]
-dev = [
-    "polyfactory",
-]
+dev = []

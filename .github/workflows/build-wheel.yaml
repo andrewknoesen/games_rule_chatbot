@@ -75,6 +75,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          ls -la ${{ env.PACKAGE_PATH }}/dist/
           gh release create ${PACKAGE_NAME}-${PACKAGE_VERSION} \
             --title "${PACKAGE_NAME}:${PACKAGE_VERSION}" \
             --notes-file ${{ env.PACKAGE_PATH }}/RELEASE.md \

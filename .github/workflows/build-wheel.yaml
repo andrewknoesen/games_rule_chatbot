@@ -62,6 +62,8 @@ jobs:
         run: |
           cd ${{ env.PACKAGE_PATH }}
           uv build
+          pwd
+          ls -la dist/
 
       - name: Upload wheels as artifact
         uses: actions/upload-artifact@v4

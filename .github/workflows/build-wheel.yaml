@@ -62,8 +62,6 @@ jobs:
         run: |
           cd ${{ env.PACKAGE_PATH }}
           uv build
-          pwd
-          ls -la dist/
 
       - name: Upload wheels as artifact
         uses: actions/upload-artifact@v4
@@ -75,7 +73,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          ls -la ${{ env.PACKAGE_PATH }}/dist/
           gh release create ${PACKAGE_NAME}-${PACKAGE_VERSION} \
             --title "${PACKAGE_NAME}:${PACKAGE_VERSION}" \
             --notes-file ${{ env.PACKAGE_PATH }}/RELEASE.md \
@@ -86,10 +83,17 @@ jobs:
         with:
           ref: gh-pages
 
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.PACKAGE_NAME }}-${{ env.PACKAGE_VERSION }}
+          path: ./${{ env.PACKAGE_PATH }}/dist/
+
       - name: Copy distribution files
         run: |
-          cp ${{ env.PACKAGE_PATH }}/dist/*.whl ./simple/${PACKAGE_NAME}/
-          cp ${{ env.PACKAGE_PATH }}/dist/*.tar.gz ./simple/${PACKAGE_NAME}/
+          mkdir -p ./simple/${{ env.PACKAGE_NAME }}/
+          cp ${{ env.PACKAGE_PATH }}/dist/*.whl ./simple/${{ env.PACKAGE_NAME }}/
+          cp ${{ env.PACKAGE_PATH }}/dist/*.tar.gz ./simple/${{ env.PACKAGE_NAME }}/
           python .github/bin/generate_pypi_index.py "${{ env.PACKAGE_PATH }}/dist/"
 
       - name: Commit and push to gh-pages

@@ -77,12 +77,22 @@ jobs:
             --title "${PACKAGE_NAME}:${PACKAGE_VERSION}" \
             --notes-file ${{ env.PACKAGE_PATH }}/RELEASE.md \
             ${{ env.PACKAGE_PATH }}/dist/*
-      - name: Publish to GitHub Packages with uv
-        env:
-          UV_PYPI_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
-          UV_PYPI_USERNAME: ${{ github.actor }}
+
+      - name: Checkout gh-pages branch
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+
+      - name: Copy distribution files
         run: |
-          echo "Not yet supported by github"
-          exit 0
-          PACKAGE_PATH="libs/${{ inputs.package-path }}"
-          uv publish $PACKAGE_PATH/dist/* -- --repository-url https://pip.pkg.github.com/$GITHUB_REPOSITORY_OWNER/
+          cp ${{ env.PACKAGE_PATH }}/dist/*.whl ./simple/${PACKAGE_NAME}/
+          cp ${{ env.PACKAGE_PATH }}/dist/*.tar.gz ./simple/${PACKAGE_NAME}/
+          python .github/bin/generate_pypi_index.py "${{ env.PACKAGE_PATH }}/dist/"
+
+      - name: Commit and push to gh-pages
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "Update PyPI index with new release"
+          git push origin gh-pages

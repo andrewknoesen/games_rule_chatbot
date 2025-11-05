@@ -78,6 +78,9 @@ jobs:
             --notes-file ${{ env.PACKAGE_PATH }}/RELEASE.md \
             ${{ env.PACKAGE_PATH }}/dist/*
 
+      - name: Copy generate_pypi_index.py to temp
+        run: cp .github/bin/generate_pypi_index.py /tmp/generate_pypi_index.py
+
       - name: Checkout gh-pages branch
         uses: actions/checkout@v4
         with:
@@ -94,7 +97,7 @@ jobs:
           mkdir -p ./simple/${{ env.PACKAGE_NAME }}/
           cp ${{ env.PACKAGE_PATH }}/dist/*.whl ./simple/${{ env.PACKAGE_NAME }}/
           cp ${{ env.PACKAGE_PATH }}/dist/*.tar.gz ./simple/${{ env.PACKAGE_NAME }}/
-          python .github/bin/generate_pypi_index.py "${{ env.PACKAGE_PATH }}/dist/"
+          python /tmp/generate_pypi_index.py "${{ env.PACKAGE_PATH }}/dist/"
 
       - name: Commit and push to gh-pages
         run: |

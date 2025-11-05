@@ -97,7 +97,7 @@ jobs:
           mkdir -p ./simple/${{ env.PACKAGE_NAME }}/
           cp ${{ env.PACKAGE_PATH }}/dist/*.whl ./simple/${{ env.PACKAGE_NAME }}/
           cp ${{ env.PACKAGE_PATH }}/dist/*.tar.gz ./simple/${{ env.PACKAGE_NAME }}/
-          python /tmp/generate_pypi_index.py "./simple/${{ env.PACKAGE_PATH }}/dist/"
+          python /tmp/generate_pypi_index.py "./simple/${{ env.PACKAGE_PATH }}/"
 
       - name: Commit and push to gh-pages
         run: |

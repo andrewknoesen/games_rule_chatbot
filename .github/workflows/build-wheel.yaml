@@ -6,9 +6,6 @@ on:
       package-path:
         required: true
         type: string
-      wheel-name:
-        required: true
-        type: string
 
 jobs:
   build-wheel:

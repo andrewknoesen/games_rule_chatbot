@@ -6,9 +6,6 @@ on:
       container-path:
         required: true
         type: string
-      container-name:
-        required: true
-        type: string
 
 jobs:
   build-image:
@@ -18,11 +15,10 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@v4
-
       - name: Extract image name and version
         id: image
         run: |
-          IMAGE_PATH="libs/${{ inputs.container-path }}"
+          IMAGE_PATH="docker/${{ inputs.container-path }}"
           echo "IMAGE_PATH=$IMAGE_PATH" >> $GITHUB_ENV
 
           # Extract only the first match of version and name to avoid picking up source sections

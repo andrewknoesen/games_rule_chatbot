@@ -10,10 +10,11 @@ ENV UV_PYTHON_INSTALL_DIR=/python
 # Only use the managed Python version
 ENV UV_PYTHON_PREFERENCE=only-managed
 
-# Install build dependencies
+# Install Python before the project for caching
+RUN uv python install 3.13
+
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-    build-essential cmake && \
+    apt-get install -y --no-install-recommends && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -35,22 +36,24 @@ RUN find /app/.venv -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null ||
     find /app/.venv -type f -name "*.py[co]" -delete && \
     find /app/.venv -type d -name "tests" -o -name "test" | xargs rm -rf 2>/dev/null || true && \
     find /app/.venv -type f -name "*.so" -exec strip --strip-unneeded {} \; 2>/dev/null || true && \
-    find /app/.venv -type d -name "*.dist-info" -exec rm -rf {} + 2>/dev/null || true && \
     find /app/.venv -type d -name "locale" -exec rm -rf {} + 2>/dev/null || true
 
-# Runtime stage - minimal distroless image
-FROM gcr.io/distroless/python3-debian12:latest
+# CMD ["uv", "run", "uvicorn", "main:app", "--host", "0.0.0.0"]
 
-# Copy the Python version from builder
-COPY --from=builder /python /python
+# Runtime stage - minimal distroless image
+FROM gcr.io/distroless/cc-debian12
 
 WORKDIR /app
 
+# Copy Python from builder
+COPY --from=builder /python /python
+
 # Copy the application from builder
 COPY --from=builder /app/.venv /app/.venv
+COPY --from=builder /app /app
 
-# Place executables in the environment at the front of the path
-ENV PATH="/app/.venv/bin:$PATH"
+# Add Python to PATH
+ENV PATH="/python/bin:/app/.venv/bin:$PATH"
 ENV PYTHONUNBUFFERED=1
 
-CMD ["python", "-m", "app.main"]
+CMD ["/app/.venv/bin/uvicorn", "main:app", "--host", "0.0.0.0"]

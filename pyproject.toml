@@ -20,6 +20,7 @@ dependencies = [
 [tool.hatch.build.targets.wheel]
 packages = [
     "lib/api/src/rules_api",
+    "docker/api",
 ]
 
 [tool.ruff]
@@ -44,11 +45,6 @@ python_files = [
     "test_*.py",
 ]
 addopts = "-ra -q --cov"
-
-[tool.uv.workspace]
-members = [
-    "docker/api",
-]
 
 [dependency-groups]
 dev = [

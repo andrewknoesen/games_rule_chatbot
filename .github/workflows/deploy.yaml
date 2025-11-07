@@ -8,8 +8,12 @@ on:
     branches: [main]
 
 jobs:
-  build-api:
+  build-python-packages:
     uses: ./.github/workflows/build-wheel.yaml
     with:
       package-path: api
-      wheel-name: api-wheel
+
+  build-docker-images:
+    uses: ./.github/workflows/build-docker.yml
+    with:
+      container-path: api

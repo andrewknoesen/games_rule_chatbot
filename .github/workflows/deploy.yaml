@@ -1,19 +1,21 @@
 name: Build Python package and upload artifact
 
-permissions:
-  contents: write
-
 on:
   push:
     branches: [main]
 
 jobs:
   build-python-packages:
+    permissions:
+      contents: write
     uses: ./.github/workflows/build-wheel.yaml
     with:
       package-path: api
 
   build-docker-images:
+    permissions:
+      contents: write
+      packages: write 
     uses: ./.github/workflows/build-docker-image.yaml
     with:
       container-path: api

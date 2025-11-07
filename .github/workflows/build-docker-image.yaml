@@ -19,7 +19,7 @@ jobs:
       - name: Extract image name and version
         id: image
         run: |
-          IMAGE_PATH="libs/${{ inputs.container-path }}"
+          IMAGE_PATH="docker/${{ inputs.container-path }}"
           echo "IMAGE_PATH=$IMAGE_PATH" >> $GITHUB_ENV
           IMAGE_VERSION=$(awk -F '"' '/^version =/ {print $2}' $IMAGE_PATH/pyproject.toml)
           IMAGE_NAME=$(awk -F '"' '/^name =/ {print $2}' $IMAGE_PATH/pyproject.toml)

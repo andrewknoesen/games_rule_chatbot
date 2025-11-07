@@ -6,9 +6,6 @@ on:
       container-path:
         required: true
         type: string
-      container-name:
-        required: true
-        type: string
 
 jobs:
   build-image:

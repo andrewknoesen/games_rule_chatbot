@@ -74,9 +74,9 @@ env:
   - name: LOG_LEVEL
     value: "info"
 
-envFrom:
-  - secretRef:
-      name: games-rule-api-secrets
+# envFrom:
+#   - secretRef:
+#       name: games-rule-api-secrets
 
 livenessProbe:
   httpGet:

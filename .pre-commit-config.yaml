@@ -22,9 +22,9 @@ repos:
       - id: end-of-file-fixer
       # Git related hooks
       - id: check-merge-conflict
-      # - id: no-commit-to-branch
-      #   args:
-      #     - "--branch=main"
+      - id: no-commit-to-branch
+        args:
+          - "--branch=main"
   - repo: https://github.com/astral-sh/uv-pre-commit
     # uv version.
     rev: 0.7.21

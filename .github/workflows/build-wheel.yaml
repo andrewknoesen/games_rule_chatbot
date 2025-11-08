@@ -28,7 +28,7 @@ jobs:
         id: check_tag
         run: |
           git tag
-          if git tag | grep -q "^${PACKAGE_NAME}-${PACKAGE_VERSION}$"; then
+          if git tag | grep -q "${PACKAGE_NAME}-${PACKAGE_VERSION}"; then
             echo "should_build=false" >> $GITHUB_OUTPUT
             echo "::warning::Tag ${PACKAGE_NAME}-${PACKAGE_VERSION} already exists. Skipping build steps."
           else

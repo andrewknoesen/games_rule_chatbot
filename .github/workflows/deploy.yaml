@@ -13,9 +13,10 @@ jobs:
       package-path: api
 
   build-docker-images:
+    needs: build-python-packages
     permissions:
       contents: write
-      packages: write 
+      packages: write
     uses: ./.github/workflows/build-docker-image.yaml
     with:
       container-path: api

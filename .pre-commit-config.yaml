@@ -17,6 +17,7 @@ repos:
       # Config Hooks
       - id: check-xml
       - id: check-yaml
+        exclude: ^charts/.*/templates/
       # General Hooks
       - id: trailing-whitespace
       - id: end-of-file-fixer

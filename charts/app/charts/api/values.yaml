@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   registry: ghcr.io
-  repository: your-username/games-rule-api
+  repository: andrewknoesen/api_image
   pullPolicy: IfNotPresent
 
 serviceAccount:

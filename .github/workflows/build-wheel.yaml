@@ -62,6 +62,7 @@ jobs:
           ' "$RELEASE_FILE"
 
       - uses: astral-sh/setup-uv@v6
+        if: steps.check_tag.outputs.should_build == 'true'
       - name: Build wheels
         if: steps.check_tag.outputs.should_build == 'true'
         run: |

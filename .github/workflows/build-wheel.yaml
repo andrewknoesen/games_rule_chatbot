@@ -10,6 +10,8 @@ on:
 jobs:
   build-wheel:
     runs-on: ubuntu-latest
+    outputs:
+      should_build: ${{ steps.check_tag.outputs.should_build }}
     steps:
       - uses: actions/checkout@v4
       - name: Extract package name and version
@@ -23,16 +25,21 @@ jobs:
           echo "PACKAGE_NAME=$PACKAGE_NAME"
           echo "PACKAGE_VERSION=$PACKAGE_VERSION" >> $GITHUB_ENV
           echo "PACKAGE_NAME=$PACKAGE_NAME" >> $GITHUB_ENV
-
+      - name: Fetch all tags
+        run: git fetch --tags --force
       - name: Check for version tag
         id: check_tag
         run: |
-          if git tag | grep -q "^${PACKAGE_NAME}-${PACKAGE_VERSION}$"; then
-            echo "Tag ${PACKAGE_NAME}-${PACKAGE_VERSION} already exists."
-            exit 0
+          if git tag | grep -q "${PACKAGE_NAME}-${PACKAGE_VERSION}"; then
+            echo "should_build=false" >> $GITHUB_OUTPUT
+            echo "::warning::Tag ${PACKAGE_NAME}-${PACKAGE_VERSION} already exists. Skipping build steps."
+          else
+            echo "should_build=true" >> $GITHUB_OUTPUT
+            echo "Tag does not exist. Proceeding with build."
           fi
 
       - name: Validate RELEASE.md for this package and version
+        if: steps.check_tag.outputs.should_build == 'true'
         run: |
           RELEASE_FILE="${{ env.PACKAGE_PATH }}/RELEASE.md"
           PYPROJECT="${{ env.PACKAGE_PATH }}/pyproject.toml"
@@ -56,6 +63,7 @@ jobs:
 
       - uses: astral-sh/setup-uv@v6
       - name: Build wheels
+        if: steps.check_tag.outputs.should_build == 'true'
         run: |
           cd ${{ env.PACKAGE_PATH }}
           uv build
@@ -67,6 +75,7 @@ jobs:
           path: ${{ env.PACKAGE_PATH }}/dist/
 
       - name: Create GitHub Release
+        if: steps.check_tag.outputs.should_build == 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -76,20 +85,24 @@ jobs:
             ${{ env.PACKAGE_PATH }}/dist/*
 
       - name: Copy generate_pypi_index.py to temp
+        if: steps.check_tag.outputs.should_build == 'true'
         run: cp .github/bin/generate_pypi_index.py /tmp/generate_pypi_index.py
 
       - name: Checkout gh-pages branch
+        if: steps.check_tag.outputs.should_build == 'true'
         uses: actions/checkout@v4
         with:
           ref: gh-pages
 
       - name: Download build artifacts
+        if: steps.check_tag.outputs.should_build == 'true'
         uses: actions/download-artifact@v4
         with:
           name: ${{ env.PACKAGE_NAME }}-${{ env.PACKAGE_VERSION }}
           path: ./${{ env.PACKAGE_PATH }}/dist/
 
       - name: Copy distribution files
+        if: steps.check_tag.outputs.should_build == 'true'
         run: |
           NORMALIZED_NAME=$(echo "${{ env.PACKAGE_NAME }}" | tr '_' '-')
           mkdir -p ./simple/${NORMALIZED_NAME}/
@@ -98,6 +111,7 @@ jobs:
           python /tmp/generate_pypi_index.py "./simple/${NORMALIZED_NAME}/"
 
       - name: Commit and push to gh-pages
+        if: steps.check_tag.outputs.should_build == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"

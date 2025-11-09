@@ -1,5 +1,7 @@
 # Release Notes
 
+## 0.1.3
+- added relationships
 
 ## 0.1.2
 - added relationships

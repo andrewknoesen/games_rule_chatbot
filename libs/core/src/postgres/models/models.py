@@ -1,11 +1,11 @@
 import datetime
 from typing import List, Optional
 
-from sqlmodel import Field, SQLModel
+from sqlmodel import Field, Relationship, SQLModel
 
 
 class Game(SQLModel, table=True):
-    __tablename__: str = "game_rules"  # type: ignore
+    __tablename__: str = "games"  # type: ignore
 
     id: int = Field(default=None, primary_key=True)
     name: str
@@ -30,11 +30,16 @@ class Game(SQLModel, table=True):
         default_factory=datetime.datetime.now
     )
 
+    # One-to-many relationship: one game has many rulebooks
+    rulebooks: List["Rulebook"] = Relationship(back_populates="game")
+
     class Config:
         extra: str = "forbid"
 
 
 class Rulebook(SQLModel, table=True):
+    __tablename__: str = "game_documents"  # type: ignore
+
     id: int = Field(default=None, primary_key=True)
     game_id: int
     document_type: str
@@ -46,6 +51,9 @@ class Rulebook(SQLModel, table=True):
     uploaded_at: Optional[datetime.datetime] = Field(
         default_factory=datetime.datetime.now
     )
+
+    # Many-to-one relationship: many rulebooks belong to one game
+    game: Optional[Game] = Relationship(back_populates="rulebooks")
 
     class Config:
         extra: str = "forbid"

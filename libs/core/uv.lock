@@ -24,7 +24,7 @@ wheels = [
 ]
 
 [[package]]
-name = "games-rule-storage"
+name = "games-rule-core"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [

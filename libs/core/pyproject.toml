@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "games_rule_storage"
+name = "games_rule_core"
 version = "0.1.0"
 description = "Storage controller component for games_rule_chatbot."
 requires-python = ">=3.11"

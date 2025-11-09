@@ -1,5 +1,9 @@
 # Release Notes
 
+
+## 0.1.6
+- fixed model
+
 ## 0.1.5
 - removed extra in sqlmodel
 

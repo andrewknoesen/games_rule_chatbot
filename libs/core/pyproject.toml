@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "games_rule_core"
-version = "0.1.5"
+version = "0.1.6"
 description = "Storage controller component for games_rule_chatbot."
 requires-python = ">=3.11"
 dependencies = [
@@ -12,6 +12,8 @@ dependencies = [
     "pydantic-settings",
     "polyfactory",
     "sqlmodel>=0.0.27",
+    "asyncpg>=0.30.0",
+    "sqlalchemy[asyncio]>=2.0, <2.1",
 ]
 
 [tool.hatch.build.targets.wheel]

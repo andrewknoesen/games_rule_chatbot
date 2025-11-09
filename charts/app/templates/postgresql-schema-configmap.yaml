@@ -46,11 +46,11 @@ data:
     CREATE INDEX idx_games_playtime ON games(min_playtime_minutes, max_playtime_minutes);
     CREATE INDEX idx_game_documents_game_id ON game_documents(game_id);
     CREATE INDEX idx_game_documents_type ON game_documents(document_type);
-    
+
     -- GIN indexes for array columns (fast searching within arrays)
     CREATE INDEX idx_games_types ON games USING GIN(game_types);
     CREATE INDEX idx_games_mechanics ON games USING GIN(game_mechanics);
-    
+
     -- Function to update the updated_at timestamp
     CREATE OR REPLACE FUNCTION update_updated_at_column()
     RETURNS TRIGGER AS $$
@@ -63,3 +63,7 @@ data:
     -- Trigger to automatically update updated_at
     CREATE TRIGGER update_games_updated_at BEFORE UPDATE ON games
       FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+    -- Grant permissions to gamesuser
+    GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO gamesuser;
+    GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO gamesuser;

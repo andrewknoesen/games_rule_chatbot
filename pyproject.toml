@@ -12,14 +12,21 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "fastapi",
-    "games-rule-api>=0.2.2",
-    "games-rule-core>=0.1.0",
+    "games-rule-api",
+    "games-rule-core",
     "polyfactory",
     "pydantic",
     "pydantic-settings",
     "sqlmodel>=0.0.27",
     "uvicorn",
 ]
+
+[tool.uv.workspace]
+members = ["libs/*"]
+
+[tool.uv.sources]
+games-rule-api = { workspace = true }
+games-rule-core = { workspace = true }
 
 [[tool.uv.index]]
 name = "github-pypi"
@@ -28,8 +35,8 @@ default = false
 
 [tool.hatch.build.targets.wheel]
 packages = [
-    "lib/api/src/rules_api",
-    "lib/core/src/postgres",
+    "libs/api/src/rules_api",
+    "libs/core/src/postgres",
     "docker/api",
 ]
 

@@ -1,5 +1,9 @@
 # Release Notes
 
+## 0.2.1
+- Added health check
+
+
 ## 0.2.0
 - Added polyfactory
 

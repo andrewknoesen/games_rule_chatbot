@@ -30,7 +30,8 @@ service:
   targetPort: 8000
   loadBalancer:
     apiIp: 192.168.0.250
-  annotations: {}
+  annotations:
+    metallb.universe.tf/loadBalancerIPs: "192.168.0.250"
 
 ingress:
   enabled: false

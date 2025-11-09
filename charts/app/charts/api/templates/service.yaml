@@ -7,9 +7,6 @@ metadata:
   {{- with .Values.service.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
-  serviceMetadata:
-    minioServiceAnnotations:
-      metallb.universe.tf/loadBalancerIPs: {{ .Values.service.loadBalancer.apiIp | quote }}
   {{- end }}
 spec:
   type: {{ .Values.service.type }}

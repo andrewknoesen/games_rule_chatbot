@@ -1,4 +1,7 @@
 # Release Notes
 
+## 0.1.1
+- fix package name
+
 ## 0.1.0
 - Initial release of package

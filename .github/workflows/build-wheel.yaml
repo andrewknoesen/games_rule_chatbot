@@ -19,8 +19,8 @@ jobs:
         run: |
           PACKAGE_PATH="libs/${{ inputs.package-path }}"
           echo "PACKAGE_PATH=$PACKAGE_PATH" >> $GITHUB_ENV
-          PACKAGE_VERSION=$(awk -F '"' '/^version =/ {print $2}' $PACKAGE_PATH/pyproject.toml)
-          PACKAGE_NAME=$(awk -F '"' '/^name =/ {print $2}' $PACKAGE_PATH/pyproject.toml)
+          PACKAGE_VERSION=$(awk -F '"' '/^\[project\]/,/^\[/ {if (/^version =/) print $2}' "$PACKAGE_PATH/pyproject.toml")
+          PACKAGE_NAME=$(awk -F '"' '/^\[project\]/,/^\[/ {if (/^name =/) print $2}' "$PACKAGE_PATH/pyproject.toml")
           echo "PACKAGE_VERSION=$PACKAGE_VERSION"
           echo "PACKAGE_NAME=$PACKAGE_NAME"
           echo "PACKAGE_VERSION=$PACKAGE_VERSION" >> $GITHUB_ENV

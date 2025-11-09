@@ -69,7 +69,7 @@ jobs:
         if: steps.check_tag.outputs.should_build == 'true'
         run: |
           cd ${{ env.PACKAGE_PATH }}
-          uv build ${{ env.PACKAGE_PATH }}/
+          uv build --out-dir dist
 
       - name: Upload wheels as artifact
         if: steps.check_tag.outputs.should_build == 'true'

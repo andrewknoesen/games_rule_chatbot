@@ -32,7 +32,7 @@ service:
     apiIp: 192.168.0.250
   annotations:
     metallb.io/ip-allocated-from-pool: loadbalancer
-    metallb.universe.tf/loadBalancerIPs: 192.168.0.250
+    metallb.io/loadBalancerIPs: 192.168.0.250
 
 ingress:
   enabled: false

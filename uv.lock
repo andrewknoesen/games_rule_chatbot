@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = ">=3.11"
 
 [manifest]
@@ -286,10 +286,12 @@ wheels = [
 
 [[package]]
 name = "games-rule-api"
-version = "0.2.2"
+version = "0.2.3"
 source = { editable = "libs/api" }
 dependencies = [
+    { name = "annotated-doc" },
     { name = "fastapi" },
+    { name = "games-rule-core" },
     { name = "polyfactory" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
@@ -298,7 +300,9 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
+    { name = "annotated-doc", specifier = ">=0.0.3" },
     { name = "fastapi" },
+    { name = "games-rule-core", editable = "libs/core" },
     { name = "polyfactory" },
     { name = "pydantic" },
     { name = "pydantic-settings" },

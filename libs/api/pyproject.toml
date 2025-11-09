@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "games_rule_api"
-version = "0.2.2"
+version = "0.2.3"
 description = "FastAPI component for games_rule_chatbot."
 requires-python = ">=3.11"
 dependencies = [
@@ -13,7 +13,14 @@ dependencies = [
     "pydantic",
     "pydantic-settings",
     "polyfactory",
+    "annotated-doc>=0.0.3",
+    "games-rule-core==0.1.6",
 ]
+
+[[tool.uv.index]]
+name = "github-pypi"
+url = "https://andrewknoesen.github.io/games_rule_chatbot/simple/"
+default = false
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/rules_api"]

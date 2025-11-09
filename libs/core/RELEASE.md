@@ -1,5 +1,8 @@
 # Release Notes
 
+## 0.1.5
+- removed extra in sqlmodel
+
 ## 0.1.4
 - use env variables for login details
 

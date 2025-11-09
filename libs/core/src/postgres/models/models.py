@@ -33,9 +33,6 @@ class Game(SQLModel, table=True):
     # One-to-many relationship: one game has many rulebooks
     rulebooks: List["Rulebook"] = Relationship(back_populates="game")
 
-    class Config:
-        extra: str = "forbid"
-
 
 class Rulebook(SQLModel, table=True):
     __tablename__: str = "game_documents"  # type: ignore
@@ -54,9 +51,6 @@ class Rulebook(SQLModel, table=True):
 
     # Many-to-one relationship: many rulebooks belong to one game
     game: Optional[Game] = Relationship(back_populates="rulebooks")
-
-    class Config:
-        extra: str = "forbid"
 
 
 class GameWithRulebooks(Game):

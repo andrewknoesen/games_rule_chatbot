@@ -5,8 +5,10 @@ metadata:
   labels:
     {{- include "games-rule-api.labels" . | nindent 4 }}
   annotations:
+    {{- if .Values.loadbBalancer.enabled }}
     metallb.io/address-pool: loadbalancer
     metallb.io/loadBalancerIPs: {{ .Values.service.loadBalancer.apiIp | quote }}
+    {{- end }}
   {{- with .Values.service.annotations }}
     {{- toYaml . | nindent 4 }}
   {{- end }}

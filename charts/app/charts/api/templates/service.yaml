@@ -5,7 +5,7 @@ metadata:
   labels:
     {{- include "games-rule-api.labels" . | nindent 4 }}
   annotations:
-    metallb.io/ip-allocated-from-pool: loadbalancer
+    metallb.io/address-pool: loadbalancer
     metallb.io/loadBalancerIPs: {{ .Values.service.loadBalancer.apiIp | quote }}
   {{- with .Values.service.annotations }}
     {{- toYaml . | nindent 4 }}

@@ -12,7 +12,7 @@ jobs:
     with:
       package-path: api
 
-  build-postgress-python-packages:
+  build-postgres-python-packages:
     permissions:
       contents: write
     uses: ./.github/workflows/build-wheel.yaml

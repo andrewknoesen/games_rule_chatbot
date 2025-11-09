@@ -13,6 +13,7 @@ requires-python = ">=3.11"
 dependencies = [
     "fastapi",
     "games-rule-api>=0.2.2",
+    "games-rule-core>=0.1.0",
     "polyfactory",
     "pydantic",
     "pydantic-settings",
@@ -25,13 +26,10 @@ name = "github-pypi"
 url = "https://andrewknoesen.github.io/games_rule_chatbot/simple/"
 default = false
 
-[tool.uv.sources]
-games_rule_api = { index = "github-pypi" }
-
 [tool.hatch.build.targets.wheel]
 packages = [
     "lib/api/src/rules_api",
-    "lib/core/src/postgress",
+    "lib/core/src/postgres",
     "docker/api",
 ]
 

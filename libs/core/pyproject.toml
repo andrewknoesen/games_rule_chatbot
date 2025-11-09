@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "games_rule_core"
-version = "0.1.0"
+version = "0.1.1"
 description = "Storage controller component for games_rule_chatbot."
 requires-python = ">=3.11"
 dependencies = [
@@ -15,7 +15,7 @@ dependencies = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/core"]
+packages = ["src/postgres"]
 
 [dependency-groups]
 dev = []

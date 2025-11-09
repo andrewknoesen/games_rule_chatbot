@@ -72,6 +72,7 @@ jobs:
           uv build
 
       - name: Upload wheels as artifact
+        if: steps.check_tag.outputs.should_build == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.PACKAGE_NAME }}-${{ env.PACKAGE_VERSION }}

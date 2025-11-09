@@ -31,7 +31,7 @@ games_rule_api = { index = "github-pypi" }
 [tool.hatch.build.targets.wheel]
 packages = [
     "lib/api/src/rules_api",
-    "lib/readers_writers/src/postgress",
+    "lib/core/src/postgress",
     "docker/api",
 ]
 

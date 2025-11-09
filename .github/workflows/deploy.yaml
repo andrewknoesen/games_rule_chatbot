@@ -17,7 +17,7 @@ jobs:
       contents: write
     uses: ./.github/workflows/build-wheel.yaml
     with:
-      package-path: readers_writers
+      package-path: core
 
   build-docker-images:
     permissions:

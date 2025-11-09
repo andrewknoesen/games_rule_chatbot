@@ -15,7 +15,7 @@ dependencies = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/postgres"]
+packages = ["src/core"]
 
 [dependency-groups]
 dev = []

@@ -1,5 +1,9 @@
 # Release Notes
 
+
+## 0.1.2
+- added relationships
+
 ## 0.1.1
 - fix package name
 

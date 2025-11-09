@@ -28,6 +28,8 @@ service:
   type: ClusterIP
   port: 80
   targetPort: 8000
+  loadBalancer:
+    apiIp: 192.168.0.250
   annotations: {}
 
 ingress:

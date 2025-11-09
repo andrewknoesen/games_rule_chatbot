@@ -32,6 +32,9 @@ jobs:
           echo "version=$IMAGE_VERSION" >> $GITHUB_OUTPUT
           echo "name=$IMAGE_NAME" >> $GITHUB_OUTPUT
 
+      - name: Fetch all tags
+        run: git fetch --tags --force
+
       - name: Check for version tag
         id: check_tag
         run: |
@@ -40,7 +43,19 @@ jobs:
             exit 1
           fi
 
+      - name: Check for version tag
+        id: check_tag
+        run: |
+          if git tag | grep -q "${IMAGE_NAME}-${IMAGE_VERSION}"; then
+            echo "should_build=false" >> $GITHUB_OUTPUT
+            echo "::warning::Tag ${IMAGE_NAME}-${IMAGE_VERSION} already exists. Skipping build steps."
+          else
+            echo "should_build=true" >> $GITHUB_OUTPUT
+            echo "Tag does not exist. Proceeding with build."
+          fi
+
       - name: Log in to GitHub Container Registry
+        if: steps.check_tag.outputs.should_build == 'true'
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -48,6 +63,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Extract metadata for Docker
+        if: steps.check_tag.outputs.should_build == 'true'
         id: meta
         uses: docker/metadata-action@v5
         with:
@@ -63,9 +79,11 @@ jobs:
             org.opencontainers.image.source=${{ github.repositoryUrl }}
 
       - name: Set up Docker Buildx
+        if: steps.check_tag.outputs.should_build == 'true'
         uses: docker/setup-buildx-action@v3
 
       - name: Build and push Docker image
+        if: steps.check_tag.outputs.should_build == 'true'
         uses: docker/build-push-action@v5
         with:
           context: ${{ env.IMAGE_PATH }}
@@ -76,6 +94,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Create GitHub Release
+        if: steps.check_tag.outputs.should_build == 'true'
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

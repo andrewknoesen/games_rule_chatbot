@@ -1,12 +1,12 @@
 [project]
 name = "api_image"
-version = "0.1.0"
+version = "0.1.1"
 description = "A package for running the games rule api"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "annotated-doc>=0.0.3",
-    "games_rule_api==0.2.0",
+    "games_rule_api==0.2.1",
 ]
 
 [[tool.uv.index]]

@@ -1,5 +1,8 @@
 # Release Notes
 
+## 0.1.4
+- use env variables for login details
+
 ## 0.1.3
 - added relationships
 

@@ -84,7 +84,7 @@ env:
 
 livenessProbe:
   httpGet:
-    path: /health
+    path: /health/live
     port: http
   initialDelaySeconds: 30
   periodSeconds: 10
@@ -93,7 +93,7 @@ livenessProbe:
 
 readinessProbe:
   httpGet:
-    path: /health
+    path: /health/ready
     port: http
   initialDelaySeconds: 10
   periodSeconds: 5

@@ -30,9 +30,7 @@ service:
   targetPort: 8000
   loadBalancer:
     apiIp: 192.168.0.250
-  annotations:
-    metallb.io/ip-allocated-from-pool: loadbalancer
-    metallb.io/loadBalancerIPs: 192.168.0.250
+  annotations: {}
 
 ingress:
   enabled: false

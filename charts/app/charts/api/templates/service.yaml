@@ -6,6 +6,7 @@ metadata:
     {{- include "games-rule-api.labels" . | nindent 4 }}
   {{- with .Values.service.annotations }}
   annotations:
+    metallb.io/loadBalancerIPs: {{ .Values.service.loadBalancer.apiIp | quote }}
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:

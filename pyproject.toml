@@ -12,14 +12,26 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "fastapi",
+    "games-rule-api>=0.2.2",
+    "polyfactory",
     "pydantic",
     "pydantic-settings",
+    "sqlmodel>=0.0.27",
     "uvicorn",
 ]
+
+[[tool.uv.index]]
+name = "github-pypi"
+url = "https://andrewknoesen.github.io/games_rule_chatbot/simple/"
+default = false
+
+[tool.uv.sources]
+games_rule_api = { index = "github-pypi" }
 
 [tool.hatch.build.targets.wheel]
 packages = [
     "lib/api/src/rules_api",
+    "lib/readers_writers/src/postgress",
     "docker/api",
 ]
 
@@ -36,6 +48,19 @@ target-version = [
 [tool.mypy]
 python_version = "3.11"
 strict = true
+plugins = ["pydantic.mypy"]
+
+follow_imports = "silent"
+warn_redundant_casts = true
+warn_unused_ignores = true
+disallow_any_generics = true
+check_untyped_defs = true
+no_implicit_reexport = true
+
+[tool.pydantic-mypy]
+init_forbid_extra = true
+init_typed = true
+warn_required_dynamic_aliases = true
 
 [tool.pytest.ini_options]
 testpaths = [
@@ -52,8 +77,8 @@ dev = [
     "black",
     "mypy",
     "omymodels>=0.8.1",
-    "pre-commit",
     "polyfactory",
+    "pre-commit",
     "pytest-cov",
     "pytest>=7.0",
     "ruff",

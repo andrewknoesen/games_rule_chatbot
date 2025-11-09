@@ -13,11 +13,6 @@ from rules_api.models.game import (
 router = APIRouter()
 
 
-# @router.get("/games")
-# def get_games() -> dict[str, list[str]]:
-#     return {"games": ["chess", "checkers", "go"]}
-
-
 @router.post("/games/", response_model=Game)
 async def create_game(game: Game) -> Game:
     # Here, `game` is already validated by Pydantic

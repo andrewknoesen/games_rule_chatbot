@@ -7,7 +7,9 @@ metadata:
   annotations:
     {{- if .Values.loadBalancer.enabled }}
     metallb.io/address-pool: loadbalancer
-    metallb.io/loadBalancerIPs: {{ .Values.loadBalancer.apiIp | quote }}
+    {{- if .Values.loadBalancer.apiIp }}
+    metallb.io/loadBalancerIPs: {{ .Values.loadBalancer.apiIp | default | quote }}
+    {{- end }}
     {{- end }}
   {{- with .Values.service.annotations }}
     {{- toYaml . | nindent 4 }}

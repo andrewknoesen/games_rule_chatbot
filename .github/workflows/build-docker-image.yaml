@@ -38,14 +38,6 @@ jobs:
       - name: Check for version tag
         id: check_tag
         run: |
-          if git tag | grep -q "^${IMAGE_NAME}-${IMAGE_VERSION}$"; then
-            echo "Tag ${IMAGE_NAME}-${IMAGE_VERSION} already exists."
-            exit 1
-          fi
-
-      - name: Check for version tag
-        id: check_tag
-        run: |
           if git tag | grep -q "${IMAGE_NAME}-${IMAGE_VERSION}"; then
             echo "should_build=false" >> $GITHUB_OUTPUT
             echo "::warning::Tag ${IMAGE_NAME}-${IMAGE_VERSION} already exists. Skipping build steps."

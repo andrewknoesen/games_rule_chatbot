@@ -1,6 +1,9 @@
 # Release Notes
 
 
+## 0.2.4
+- added exception handling
+
 ## 0.2.3
 - Added postgres commands
 

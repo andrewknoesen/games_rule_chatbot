@@ -45,15 +45,15 @@ spec:
         - name: POSTGRES_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: {{ .Values.postgres.passwordSecret.name }}
+              name: {{ .Release.Name }}-{{ .Values.postgres.passwordSecret.name }}
               key: {{ .Values.postgres.passwordSecret.key }}
         - name: POSTGRES_USER
           valueFrom:
             secretKeyRef:
-              name: {{ .Values.postgres.userSecret.name }}
+              name: {{ .Release.Name }}-{{ .Values.postgres.userSecret.name }}
               key: {{ .Values.postgres.userSecret.key }}
         - name: POSTGRES_HOST
-          value: {{ .Values.postgres.host | quote }}
+          value: {{ .Release.Name }}-{{ .Values.postgres.host }}
         - name: POSTGRES_PORT
           value: {{ .Values.postgres.port | quote }}
         - name: POSTGRES_DB

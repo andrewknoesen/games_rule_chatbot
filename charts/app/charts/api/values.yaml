@@ -14,7 +14,7 @@ env:
 logLevel: "info"
 
 postgres:
-  host: localhost
+  host: postgres-rw
   port: 5432
   dbName: db
   passwordSecret:

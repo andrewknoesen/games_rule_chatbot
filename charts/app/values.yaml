@@ -1,13 +1,13 @@
 games-rule-api:
   postgres:
-    host: "{{ .Release.name }}-postgres-rw"
+    host: postgres-rw
     port: 5432
     dbName: games
     passwordSecret:
-      name: "{{ .Release.name }}-postgres-app"
+      name: postgres-app
       key: password
     userSecret:
-      name: "{{ .Release.name }}-postgres-app"
+      name: postgres-app
       key: username
 
 minio:

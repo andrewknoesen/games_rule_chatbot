@@ -5,14 +5,10 @@ description = "A package for running the games rule api"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "annotated-doc>=0.0.3",
-    "games_rule_api==0.2.2",
+    "games_rule_api==0.2.3",
 ]
 
 [[tool.uv.index]]
 name = "github-pypi"
 url = "https://andrewknoesen.github.io/games_rule_chatbot/simple/"
 default = false
-
-[tool.uv.sources]
-games_rule_api = { index = "github-pypi" }

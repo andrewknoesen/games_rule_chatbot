@@ -78,9 +78,9 @@ env:
   - name: LOG_LEVEL
     value: "info"
 
-# envFrom:
-#   - secretRef:
-#       name: games-rule-api-secrets
+envFrom:
+  - secretRef:
+      name: game-rules-chatbot-postgres-app
 
 livenessProbe:
   httpGet:

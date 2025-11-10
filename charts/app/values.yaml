@@ -1,3 +1,19 @@
+games-rule-api:
+  postgres:
+  host: "{{ .Release.name }}-postgres-rw"
+  port: 5432
+  dbName: games
+  passwordSecret:
+    name: "{{ .Release.name }}-postgres-app"
+    key: password
+  userSecret:
+    name: "{{ .Release.name }}-postgres-app"
+    key: username
+
+envFrom:
+  - secretRef:
+      name:
+
 minio:
   rootUser: admin
   rootPassword: "" # If empty, a random password will be generated

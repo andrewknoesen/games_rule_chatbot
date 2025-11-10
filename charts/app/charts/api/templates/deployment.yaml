@@ -41,13 +41,31 @@ spec:
         readinessProbe:
           {{- toYaml .Values.readinessProbe | nindent 12 }}
         {{- end }}
-        {{- if .Values.env }}
         env:
-          {{- toYaml .Values.env | nindent 12 }}
-        {{- end }}
-        {{- if .Values.envFrom }}
-        envFrom:
-          {{- toYaml .Values.envFrom | nindent 12 }}
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.postgres.passwordSecret.name }}
+              key: {{ .Values.postgres.passwordSecret.key }}
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.postgres.userSecret.name }}
+              key: {{ .Values.postgres.userSecret.key }}
+        - name: POSTGRES_HOST
+          value: {{ .Values.postgres.host | quote }}
+        - name: POSTGRES_PORT
+          value: {{ .Values.postgres.port | quote }}
+        - name: POSTGRES_DB
+          value: {{ .Values.postgres.dbName | quote }}
+        - name: MINIO_ENDPOINT
+          value: "minio-service:9000"
+        - name: WEAVIATE_URL
+          value: "http://weaviate-service:8080"
+        - name: LOG_LEVEL
+          value: {{ .Values.logLevel | quote }}
+        {{- with .Values.env }}
+          {{- toYaml . | nindent 8 }}
         {{- end }}
         resources:
           {{- toYaml .Values.resources | nindent 12 }}

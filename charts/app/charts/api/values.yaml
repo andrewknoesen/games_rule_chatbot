@@ -5,6 +5,25 @@ image:
   repository: andrewknoesen/api_image
   pullPolicy: IfNotPresent
 
+env:
+  - name: MINIO_ENDPOINT
+    value: "minio-service:9000"
+  - name: WEAVIATE_URL
+    value: "http://weaviate-service:8080"
+
+logLevel: "info"
+
+postgres:
+  host: localhost
+  port: 5432
+  dbName: db
+  passwordSecret:
+    name: secret_name
+    key: key
+  userSecret:
+    name: secret_name
+    key: key
+
 serviceAccount:
   create: true
   annotations: {}
@@ -63,24 +82,6 @@ autoscaling:
   maxReplicas: 10
   targetCPUUtilizationPercentage: 80
   targetMemoryUtilizationPercentage: 80
-
-env:
-  - name: POSTGRES_HOST
-    value: "postgres-service"
-  - name: POSTGRES_PORT
-    value: "5432"
-  - name: POSTGRES_DB
-    value: "games_rules"
-  - name: MINIO_ENDPOINT
-    value: "minio-service:9000"
-  - name: WEAVIATE_URL
-    value: "http://weaviate-service:8080"
-  - name: LOG_LEVEL
-    value: "info"
-
-envFrom:
-  - secretRef:
-      name: game-rules-chatbot-postgres-app
 
 livenessProbe:
   httpGet:

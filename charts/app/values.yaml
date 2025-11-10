@@ -10,10 +10,6 @@ games-rule-api:
     name: "{{ .Release.name }}-postgres-app"
     key: username
 
-envFrom:
-  - secretRef:
-      name:
-
 minio:
   rootUser: admin
   rootPassword: "" # If empty, a random password will be generated

@@ -286,7 +286,7 @@ wheels = [
 
 [[package]]
 name = "games-rule-api"
-version = "0.2.3"
+version = "0.2.4"
 source = { editable = "libs/api" }
 dependencies = [
     { name = "annotated-doc" },

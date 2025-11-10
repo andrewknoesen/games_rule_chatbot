@@ -1,9 +1,9 @@
 from typing import List, Sequence
 
 from fastapi import APIRouter, Depends, HTTPException
-from postgres.models.models import Game, Rulebook  # type: ignore
-from postgres.reader.reader import PostgresReader  # type: ignore
-from postgres.session import get_async_session  # type: ignore
+from postgres.models.models import Game, GameBase, Rulebook
+from postgres.reader.reader import PostgresReader
+from postgres.session import get_async_session
 from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter()
@@ -11,11 +11,13 @@ router = APIRouter()
 
 @router.post("/games/", response_model=Game)
 async def create_game(
-    game: Game, session: AsyncSession = Depends(get_async_session)
+    game: GameBase, session: AsyncSession = Depends(get_async_session)
 ) -> Game:
+    # Convert GameBase to Game (table model)
+    db_game: Game = Game.model_validate(game)
     # insert game
     reader: PostgresReader[Game] = PostgresReader[Game](session, Game)
-    return await reader.create(game)
+    return await reader.create(db_game)
 
 
 @router.get("/games/", response_model=List[Game])

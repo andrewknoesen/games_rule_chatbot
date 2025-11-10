@@ -369,7 +369,7 @@ dev = [
 
 [[package]]
 name = "games-rule-core"
-version = "0.1.6"
+version = "0.1.7"
 source = { editable = "libs/core" }
 dependencies = [
     { name = "asyncpg" },

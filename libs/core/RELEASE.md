@@ -1,6 +1,9 @@
 # Release Notes
 
 
+## 0.1.7
+- fixed model (more)
+
 ## 0.1.6
 - fixed model
 

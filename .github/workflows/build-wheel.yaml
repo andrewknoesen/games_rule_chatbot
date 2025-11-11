@@ -13,7 +13,7 @@ jobs:
     outputs:
       should_build: ${{ steps.check_tag.outputs.should_build }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Extract package name and version
         id: package
         run: |
@@ -63,7 +63,7 @@ jobs:
               }
           ' "$RELEASE_FILE"
 
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v7
         if: steps.check_tag.outputs.should_build == 'true'
       - name: Build wheels
         if: steps.check_tag.outputs.should_build == 'true'
@@ -73,7 +73,7 @@ jobs:
 
       - name: Upload wheels as artifact
         if: steps.check_tag.outputs.should_build == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ${{ env.PACKAGE_NAME }}-${{ env.PACKAGE_VERSION }}
           path: ${{ env.PACKAGE_PATH }}/dist/
@@ -94,13 +94,13 @@ jobs:
 
       - name: Checkout gh-pages branch
         if: steps.check_tag.outputs.should_build == 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: gh-pages
 
       - name: Download build artifacts
         if: steps.check_tag.outputs.should_build == 'true'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: ${{ env.PACKAGE_NAME }}-${{ env.PACKAGE_VERSION }}
           path: ./${{ env.PACKAGE_PATH }}/dist/

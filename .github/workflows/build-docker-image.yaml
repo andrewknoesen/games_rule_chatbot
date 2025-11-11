@@ -14,7 +14,7 @@ jobs:
       contents: write
       packages: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Extract image name and version
         id: image
         run: |
@@ -76,7 +76,7 @@ jobs:
 
       - name: Build and push Docker image
         if: steps.check_tag.outputs.should_build == 'true'
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: ${{ env.IMAGE_PATH }}
           push: true

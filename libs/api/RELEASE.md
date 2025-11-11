@@ -1,6 +1,9 @@
 # Release Notes
 
 
+## 0.2.5
+- imported new core package
+
 ## 0.2.4
 - added exception handling
 

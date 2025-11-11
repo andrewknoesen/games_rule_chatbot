@@ -4,4 +4,4 @@ set -e
 
 basepath=$(dirname "$0")
 cd "$basepath/../src"
-uvicorn rules_api.main:app
+uvicorn games_rule_api.main:app

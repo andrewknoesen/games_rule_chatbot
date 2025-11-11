@@ -5,21 +5,29 @@ on:
     branches: [main]
 
 jobs:
-  build-api-python-packages:
+  build-core-python-packages:
     permissions:
       contents: write
+    strategy:
+      matrix:
+        package: [core]
     uses: ./.github/workflows/build-wheel.yaml
     with:
-      package-path: api
+      package-path: ${{ matrix.package }}
 
-  build-postgres-python-packages:
+  build-dependent-python-packages:
+    needs: build-core-python-packages
     permissions:
       contents: write
+    strategy:
+      matrix:
+        package: [api]
     uses: ./.github/workflows/build-wheel.yaml
     with:
-      package-path: core
+      package-path: ${{ matrix.package }}
 
   build-docker-images:
+    needs: build-dependent-python-packages
     permissions:
       contents: write
       packages: write

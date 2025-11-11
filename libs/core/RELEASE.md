@@ -1,6 +1,9 @@
 # Release Notes
 
 
+## 0.2.0
+- restructured porject
+
 ## 0.1.7
 - fixed model (more)
 

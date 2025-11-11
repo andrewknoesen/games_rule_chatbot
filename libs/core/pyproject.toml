@@ -1,11 +1,10 @@
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
 [project]
 name = "games_rule_core"
-version = "0.1.7"
+version = "0.2.0"
 description = "Storage controller component for games_rule_chatbot."
+authors = [
+    { name = "Andrew Knoesen", email = "andrewknoesen@gmail.com" }
+]
 requires-python = ">=3.11"
 dependencies = [
     "pydantic",
@@ -16,8 +15,14 @@ dependencies = [
     "sqlalchemy[asyncio]>=2.0, <2.1",
 ]
 
-[tool.hatch.build.targets.wheel]
-packages = ["src/postgres"]
+[build-system]
+requires = ["uv_build>=0.9.7,<0.10.0"]
+build-backend = "uv_build"
+
+[[tool.uv.index]]
+name = "github-pypi"
+url = "https://andrewknoesen.github.io/games_rule_chatbot/simple/"
+default = false
 
 [dependency-groups]
 dev = []

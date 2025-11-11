@@ -1,9 +1,9 @@
 from typing import List, Sequence
 
 from fastapi import APIRouter, Depends, HTTPException
-from postgres.models.models import Game, GameBase, Rulebook
-from postgres.reader.reader import PostgresReader
-from postgres.session import get_async_session
+from games_rule_core.postgres.models.models import Game, GameBase, Rulebook
+from games_rule_core.postgres.reader.reader import PostgresReader
+from games_rule_core.postgres.session import get_async_session
 from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter()

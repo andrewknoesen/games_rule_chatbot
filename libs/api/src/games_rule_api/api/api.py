@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 from sqlalchemy.exc import IntegrityError
 
-from rules_api.exceptions.exceptions import integrity_error_handler
-from rules_api.routers import games, health, settings
+from games_rule_api.exceptions.exceptions import integrity_error_handler
+from games_rule_api.routers import games, health, settings
 
 app = FastAPI()
 app.add_exception_handler(IntegrityError, integrity_error_handler)

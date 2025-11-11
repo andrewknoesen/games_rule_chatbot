@@ -1,25 +1,10 @@
-[build-system]
-requires = [
-    "hatchling",
-]
-build-backend = "hatchling.build"
-
 [project]
 name = "games_rule_chatbot"
 version = "0.1.0"
 description = "A chatbot that will be able to answer questions about games that it has the rules of"
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = [
-    "fastapi",
-    "games-rule-api",
-    "games-rule-core",
-    "polyfactory",
-    "pydantic",
-    "pydantic-settings",
-    "sqlmodel>=0.0.27",
-    "uvicorn",
-]
+dependencies = []
 
 [tool.uv.workspace]
 members = ["libs/*"]
@@ -27,18 +12,12 @@ members = ["libs/*"]
 [tool.uv.sources]
 games-rule-api = { workspace = true }
 games-rule-core = { workspace = true }
+games-rule-agents = { workspace = true }
 
 [[tool.uv.index]]
 name = "github-pypi"
 url = "https://andrewknoesen.github.io/games_rule_chatbot/simple/"
 default = false
-
-[tool.hatch.build.targets.wheel]
-packages = [
-    "libs/api/src/rules_api",
-    "libs/core/src/postgres",
-    "docker/api",
-]
 
 [tool.ruff]
 line-length = 88

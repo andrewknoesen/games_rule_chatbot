@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from rules_api.models.health import HealthResponse
+from games_rule_api.models.health import HealthResponse
 
 router = APIRouter(tags=["health"])
 

@@ -36,14 +36,14 @@ wheels = [
 
 [[package]]
 name = "api-image"
-version = "0.1.6"
+version = "0.1.7"
 source = { virtual = "." }
 dependencies = [
     { name = "games-rule-api" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "games-rule-api", specifier = "==0.2.4" }]
+requires-dist = [{ name = "games-rule-api", specifier = "==0.2.5" }]
 
 [[package]]
 name = "asyncpg"
@@ -127,7 +127,7 @@ wheels = [
 
 [[package]]
 name = "games-rule-api"
-version = "0.2.4"
+version = "0.2.5"
 source = { registry = "https://andrewknoesen.github.io/games_rule_chatbot/simple/" }
 dependencies = [
     { name = "annotated-doc" },
@@ -138,14 +138,14 @@ dependencies = [
     { name = "pydantic-settings" },
     { name = "uvicorn" },
 ]
-sdist = { url = "https://andrewknoesen.github.io/games_rule_chatbot/simple/games-rule-api/games_rule_api-0.2.4.tar.gz" }
+sdist = { url = "https://andrewknoesen.github.io/games_rule_chatbot/simple/games-rule-api/games_rule_api-0.2.5.tar.gz" }
 wheels = [
-    { url = "https://andrewknoesen.github.io/games_rule_chatbot/simple/games-rule-api/games_rule_api-0.2.4-py3-none-any.whl" },
+    { url = "https://andrewknoesen.github.io/games_rule_chatbot/simple/games-rule-api/games_rule_api-0.2.5-py3-none-any.whl" },
 ]
 
 [[package]]
 name = "games-rule-core"
-version = "0.1.7"
+version = "0.2.0"
 source = { registry = "https://andrewknoesen.github.io/games_rule_chatbot/simple/" }
 dependencies = [
     { name = "asyncpg" },
@@ -155,9 +155,9 @@ dependencies = [
     { name = "sqlalchemy", extra = ["asyncio"] },
     { name = "sqlmodel" },
 ]
-sdist = { url = "https://andrewknoesen.github.io/games_rule_chatbot/simple/games-rule-core/games_rule_core-0.1.7.tar.gz" }
+sdist = { url = "https://andrewknoesen.github.io/games_rule_chatbot/simple/games-rule-core/games_rule_core-0.2.0.tar.gz" }
 wheels = [
-    { url = "https://andrewknoesen.github.io/games_rule_chatbot/simple/games-rule-core/games_rule_core-0.1.7-py3-none-any.whl" },
+    { url = "https://andrewknoesen.github.io/games_rule_chatbot/simple/games-rule-core/games_rule_core-0.2.0-py3-none-any.whl" },
 ]
 
 [[package]]

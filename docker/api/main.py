@@ -1,4 +1,4 @@
 from fastapi import FastAPI
-from rules_api.api import api  # type: ignore
+from games_rule_api.api import api
 
 app: FastAPI = api.app

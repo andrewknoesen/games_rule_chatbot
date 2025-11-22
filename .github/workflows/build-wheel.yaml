@@ -13,7 +13,7 @@ jobs:
     outputs:
       should_build: ${{ steps.check_tag.outputs.should_build }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Extract package name and version
         id: package
         run: |
@@ -94,7 +94,7 @@ jobs:
 
       - name: Checkout gh-pages branch
         if: steps.check_tag.outputs.should_build == 'true'
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: gh-pages
 

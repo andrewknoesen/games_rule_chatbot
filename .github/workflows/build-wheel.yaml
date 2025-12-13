@@ -73,7 +73,7 @@ jobs:
 
       - name: Upload wheels as artifact
         if: steps.check_tag.outputs.should_build == 'true'
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ env.PACKAGE_NAME }}-${{ env.PACKAGE_VERSION }}
           path: ${{ env.PACKAGE_PATH }}/dist/
@@ -100,7 +100,7 @@ jobs:
 
       - name: Download build artifacts
         if: steps.check_tag.outputs.should_build == 'true'
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: ${{ env.PACKAGE_NAME }}-${{ env.PACKAGE_VERSION }}
           path: ./${{ env.PACKAGE_PATH }}/dist/

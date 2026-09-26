@@ -12,7 +12,7 @@ dependencies = [
     "polyfactory",
     "sqlmodel>=0.0.27",
     "asyncpg>=0.30.0",
-    "sqlalchemy[asyncio]>=2.0, <2.1",
+    "sqlalchemy[asyncio]>=2.1, <2.2",
 ]
 
 [build-system]

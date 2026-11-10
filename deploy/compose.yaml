@@ -1,0 +1,59 @@
+# Homelab deployment (192.168.0.200, plain Docker Compose — no Kubernetes on
+# that host, see homelab repo memory/k3s-removed.md).
+#
+# Needs deploy/.env with POSTGRES_PASSWORD (see .env.example).
+# The host cron runs `up -d --pull always` every 15 min, so a new image
+# pushed to GHCR (`latest`) or a change merged here goes live automatically.
+name: games_rule_chatbot
+
+services:
+  postgres:
+    # Pinned to 17: the 18 image moved its data dir, so a major bump needs a
+    # dump/restore, not just a tag change.
+    image: postgres:17-alpine
+    restart: unless-stopped
+    mem_limit: 256m
+    environment:
+      POSTGRES_DB: games
+      POSTGRES_USER: gamesuser
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in deploy/.env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # Runs only when the volume is empty (first start).
+      - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gamesuser -d games"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    image: ghcr.io/andrewknoesen/api_image:${API_TAG:-latest}
+    restart: unless-stopped
+    mem_limit: 256m
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      POSTGRES_DB: games
+      POSTGRES_USER: gamesuser
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in deploy/.env}
+    # LAN/tailnet only (8000 is taken on the host). No auth on the API yet,
+    # so do not route it through Traefik/Cloudflare without Authelia.
+    ports:
+      - "8720:8000"
+    healthcheck:
+      # Image is distroless: no curl/wget, so use the venv's python.
+      test:
+        - CMD
+        - /app/.venv/bin/python
+        - -c
+        - import urllib.request; urllib.request.urlopen('http://localhost:8000/health')
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  pgdata:

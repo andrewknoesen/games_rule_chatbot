@@ -1,6 +1,5 @@
-from typing import Any, Generic, Optional, Sequence, Tuple, Type, TypeVar
+from typing import Any, Generic, Optional, Sequence, Type, TypeVar
 
-from sqlalchemy import Result
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from sqlmodel import SQLModel, func, select
@@ -67,7 +66,7 @@ class PostgresReader(Generic[ModelType]):
             if hasattr(self.model_class, field):
                 statement = statement.where(getattr(self.model_class, field) == value)
 
-        result: Result[Tuple[ModelType]] = await self.session.execute(statement)
+        result = await self.session.execute(statement)
         return result.scalars().all()
 
     async def search_by_text(
@@ -130,7 +129,7 @@ class PostgresReader(Generic[ModelType]):
             if hasattr(self.model_class, field):
                 statement = statement.where(getattr(self.model_class, field) == value)
 
-        result: Result[Tuple[int]] = await self.session.execute(statement)
+        result = await self.session.execute(statement)
         return result.scalar() or 0
 
     async def exists(self, record_id: int) -> bool:

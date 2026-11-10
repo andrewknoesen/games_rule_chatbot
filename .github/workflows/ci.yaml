@@ -1,0 +1,31 @@
+name: CI
+
+# Runs on GitHub-hosted runners only. The repo is public, so never point a
+# pull_request workflow at a self-hosted runner on the homelab LAN.
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v7
+      - name: Install workspace
+        run: uv sync --all-packages --locked
+      - name: Ruff lint
+        run: uv run ruff check .
+      - name: Ruff format
+        run: uv run ruff format --check .
+      - name: Mypy
+        run: uv run mypy --strict --config-file pyproject.toml libs
+      - name: Release notes match versions
+        run: bash .hooks/validate_release_notes.sh
+      - name: Homelab compose file is valid
+        run: docker compose -f deploy/compose.yaml config -q
+        env:
+          POSTGRES_PASSWORD: ci

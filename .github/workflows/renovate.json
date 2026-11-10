@@ -6,6 +6,11 @@
       "automerge": true
     },
     {
+      "description": "Python is pinned to what pydantic-core ships wheels for; 3.15 broke uv sync",
+      "matchManagers": ["pyenv"],
+      "enabled": false
+    },
+    {
       "matchPackagePatterns": ["*"],
       "groupName": "all dependencies",
       "schedule": ["every weekend"]

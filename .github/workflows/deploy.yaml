@@ -1,4 +1,4 @@
-name: Build Python package and upload artifact
+name: Build packages and images
 
 on:
   push:
@@ -26,11 +26,22 @@ jobs:
     with:
       package-path: ${{ matrix.package }}
 
-  build-docker-images:
-    needs: build-dependent-python-packages
+  # Images build from the workspace source, so they don't wait on the wheels.
+  build-api-image:
     permissions:
       contents: write
       packages: write
     uses: ./.github/workflows/build-docker-image.yaml
     with:
-      container-path: api
+      version-file: docker/api/pyproject.toml
+      dockerfile: docker/api/Dockerfile
+
+  build-ui-image:
+    permissions:
+      contents: write
+      packages: write
+    uses: ./.github/workflows/build-docker-image.yaml
+    with:
+      version-file: frontend/package.json
+      dockerfile: frontend/Dockerfile
+      context: frontend

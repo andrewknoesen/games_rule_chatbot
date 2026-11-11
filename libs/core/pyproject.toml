@@ -1,6 +1,6 @@
 [project]
 name = "games_rule_core"
-version = "0.2.0"
+version = "0.3.0"
 description = "Storage controller component for games_rule_chatbot."
 authors = [
     { name = "Andrew Knoesen", email = "andrewknoesen@gmail.com" }
@@ -13,6 +13,9 @@ dependencies = [
     "sqlmodel>=0.0.27",
     "asyncpg>=0.30.0",
     "sqlalchemy[asyncio]>=2.1, <2.2",
+    "google-adk>=2.14.0",
+    "google-genai>=2.34.0",
+    "pymupdf>=2.1",
 ]
 
 [build-system]

@@ -29,3 +29,9 @@ jobs:
         run: docker compose -f deploy/compose.yaml config -q
         env:
           POSTGRES_PASSWORD: ci
+          GOOGLE_API_KEY: ci
+      - name: Tests
+        run: uv run pytest libs/core/tests -q --no-cov
+      - name: Frontend builds
+        working-directory: frontend
+        run: npm ci && npm run build

@@ -1,54 +1,44 @@
 ---
 name: release
-description: Cut a release of games_rule_core, games_rule_api, and/or the api_image Docker image — version bumps, RELEASE.md notes, dependency pins, lockfiles, and the two-PR order the pipeline needs. Use for "release", "bump version", "publish the package", "ship this change", or when a libs/ change needs to reach the homelab.
+description: Ship a change to games_rule_core, games_rule_api, the api_image or the games_ui image — version bumps, RELEASE.md notes and pins in one PR. Use for "release", "bump version", "publish", "ship this change", or when a change needs to reach the homelab.
 ---
 
 # Release
 
-Three artifacts, published in a chain by `.github/workflows/deploy.yaml` on push to `main`:
+`.github/workflows/deploy.yaml` runs on every push to `main`. Each job builds
+**only if** its `<name>-<version>` git tag does not exist yet, so an unbumped
+version skips silently and the change never ships.
 
-```
-libs/core  (games_rule_core)  ──pinned by──▶  libs/api  (games_rule_api)  ──pinned by──▶  docker/api  (api_image)
-   wheel → gh-pages PyPI index                    wheel → gh-pages index                     image → ghcr.io/andrewknoesen/api_image
-```
+| What changed | Bump | Ships as |
+|---|---|---|
+| `libs/core` | `libs/core/pyproject.toml` + `libs/core/RELEASE.md` | wheel on the gh-pages index |
+| `libs/api` | `libs/api/pyproject.toml` + `libs/api/RELEASE.md` | wheel on the gh-pages index |
+| anything the API runs (`libs/*`, `docker/api/`) | `docker/api/pyproject.toml` `version` | `ghcr.io/andrewknoesen/api_image:<ver>` + `latest` |
+| `frontend/` | `frontend/package.json` `version` (also `package-lock.json`, via `npm version <ver> --no-git-tag-version`) | `ghcr.io/andrewknoesen/games_ui:<ver>` + `latest` |
 
-Each job builds **only if** the `<name>-<version>` git tag does not exist yet.
-An unbumped version means the job skips silently. Code merged without a bump never ships.
-
-## Rules the pipeline enforces
-
-- `libs/<pkg>/RELEASE.md` must have a non-empty `## <version>` section matching
-  `pyproject.toml`. Check locally with `bash .hooks/validate_release_notes.sh`.
-- `docker/api/uv.lock` resolves `games_rule_api` from the **published** index
-  (`https://andrewknoesen.github.io/games_rule_chatbot/simple/`). It cannot lock a
-  wheel that is not published yet.
-- `main` is protected by the `no-commit-to-branch` pre-commit hook: work on a branch and open a PR.
+The API image builds straight from the uv workspace source (`docker/api/Dockerfile`,
+context `.`). It does **not** wait for the wheels, so one PR ships everything.
+The wheels still publish for anything that installs them.
 
 ## Steps
 
-Ask which packages changed if unclear (`git diff main --stat -- libs/ docker/`).
-Use semver: patch for fixes, minor for features. The existing notes are one-line bullets.
-
-### PR 1: libraries (skip parts that did not change)
-
-1. **core changed**: bump `version` in `libs/core/pyproject.toml`, and add `## <ver>` with bullets at the top of `libs/core/RELEASE.md`.
-2. **api changed, or core bumped**: bump `libs/api/pyproject.toml` `version`. If core was bumped, update its pin `games-rule-core==<new core ver>`. Add a `libs/api/RELEASE.md` section.
-3. `uv lock` at the repo root, then `uv sync --all-packages`.
-4. Run checks: `uv run ruff check . && uv run ruff format --check . && uv run mypy --strict --config-file pyproject.toml libs && bash .hooks/validate_release_notes.sh`.
-5. Commit, push, open the PR. After merge, wait for the `deploy.yaml` run to publish the wheels (`gh run watch`).
-
-### PR 2: image (needs PR 1's wheels on the index)
-
-1. Check that the wheel is live: `curl -s https://andrewknoesen.github.io/games_rule_chatbot/simple/games-rule-api/ | grep <new api ver>`. gh-pages can lag a minute.
-2. In `docker/api/pyproject.toml`, set the pin to `games_rule_api==<new api ver>` and bump `version`.
-3. `cd docker/api && uv lock --refresh`.
-4. Commit, push, open the PR, merge. `deploy.yaml` then pushes `api_image:<ver>` and `latest`.
-5. The homelab cron pulls `latest` within 15 min. To deploy at once or verify, use the `homelab-deploy` skill.
-
-If only `docker/api` changed (Dockerfile, `main.py`), do PR 2 alone.
+1. Work out what changed: `git diff main --stat -- libs/ docker/ frontend/`.
+2. Bump each affected version (semver: patch for fixes, minor for features).
+   - For a lib, add a `## <ver>` section with one-line bullets at the top of its `RELEASE.md`.
+   - If core was bumped, update the api's pin: `games-rule-core==<new core ver>` in `libs/api/pyproject.toml`.
+   - Any `libs/*` change that should reach the homelab also needs the `docker/api` bump.
+3. Run `uv lock`.
+4. Run the checks (the same ones as `ci.yaml`):
+   ```bash
+   uv run ruff check . && uv run ruff format --check . && uv run mypy --strict --config-file pyproject.toml libs && uv run pytest libs/core/tests -q --no-cov && bash .hooks/validate_release_notes.sh
+   ```
+   If you touched the UI, also run `cd frontend && npm run build`.
+5. Commit on a branch, push and open a PR. `main` is protected by the `no-commit-to-branch` hook.
+6. After merge, watch the run with `gh run watch`. The homelab cron pulls `latest` within 15 min. To deploy at once or to verify, use the `homelab-deploy` skill.
 
 ## Gotchas
 
-- Keep `.python-version` on a version that pydantic-core ships wheels for (3.13 now). Renovate bumped it to 3.15 once and broke `uv sync`.
-- The Dockerfile installs Python 3.13 on its own. Keep both versions aligned.
+- Keep `.python-version` on a Python that pydantic-core and PyMuPDF ship wheels for (3.13 now). The Dockerfile installs 3.13 itself; keep the two aligned. Renovate's `pyenv` manager is disabled for this reason.
 - A version number can never be reused. Once a tag exists, fix forward with a new patch version.
+- A schema change (`deploy/schema.sql`) is not applied by a deploy. See "Schema changes" in the `homelab-deploy` skill.
+- On macOS, if `import games_rule_core` fails after `uv sync`, the `.pth` files got the hidden flag (Python 3.13 skips them). Fix it with `chflags nohidden .venv/lib/python3.13/site-packages/*.pth`.

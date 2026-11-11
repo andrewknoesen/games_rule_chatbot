@@ -3,9 +3,17 @@ name: Build and Upload Docker Image Enforcing Versioning
 on:
   workflow_call:
     inputs:
-      container-path:
+      version-file:
+        description: pyproject.toml or package.json holding the image name and version
         required: true
         type: string
+      dockerfile:
+        required: true
+        type: string
+      context:
+        required: false
+        type: string
+        default: "."
 
 jobs:
   build-image:
@@ -18,19 +26,19 @@ jobs:
       - name: Extract image name and version
         id: image
         run: |
-          IMAGE_PATH="docker/${{ inputs.container-path }}"
-          echo "IMAGE_PATH=$IMAGE_PATH" >> $GITHUB_ENV
-
-          # Extract only the first match of version and name to avoid picking up source sections
-          IMAGE_VERSION=$(grep -m 1 '^version = ' $IMAGE_PATH/pyproject.toml | cut -d'"' -f2)
-          IMAGE_NAME=$(grep -m 1 '^name = ' $IMAGE_PATH/pyproject.toml | cut -d'"' -f2)
-
-          echo "IMAGE_VERSION=$IMAGE_VERSION"
-          echo "IMAGE_NAME=$IMAGE_NAME"
-          echo "IMAGE_VERSION=$IMAGE_VERSION" >> $GITHUB_ENV
+          F="${{ inputs.version-file }}"
+          case "$F" in
+            *.json)
+              IMAGE_NAME=$(jq -r .name "$F")
+              IMAGE_VERSION=$(jq -r .version "$F") ;;
+            *)
+              # Only the first match, to avoid picking up other sections
+              IMAGE_NAME=$(grep -m 1 '^name = ' "$F" | cut -d'"' -f2)
+              IMAGE_VERSION=$(grep -m 1 '^version = ' "$F" | cut -d'"' -f2) ;;
+          esac
+          echo "IMAGE_NAME=$IMAGE_NAME IMAGE_VERSION=$IMAGE_VERSION"
           echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
-          echo "version=$IMAGE_VERSION" >> $GITHUB_OUTPUT
-          echo "name=$IMAGE_NAME" >> $GITHUB_OUTPUT
+          echo "IMAGE_VERSION=$IMAGE_VERSION" >> $GITHUB_ENV
 
       - name: Fetch all tags
         run: git fetch --tags --force
@@ -78,7 +86,8 @@ jobs:
         if: steps.check_tag.outputs.should_build == 'true'
         uses: docker/build-push-action@v6
         with:
-          context: ${{ env.IMAGE_PATH }}
+          context: ${{ inputs.context }}
+          file: ${{ inputs.dockerfile }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

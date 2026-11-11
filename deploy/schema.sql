@@ -1,12 +1,23 @@
--- Board Games table
+-- Runs once, when the pgdata volume is empty. For an existing DB, apply
+-- changes by hand (see .claude/skills/homelab-deploy) and mirror them here.
+-- Keep in sync with libs/core/src/games_rule_core/postgres/models/models.py.
+
+CREATE EXTENSION IF NOT EXISTS vector;
+
+-- One row per uploaded rulebook. Everything except id/name/status is filled
+-- in by ingestion (Gemini extraction), so most columns are nullable.
 CREATE TABLE IF NOT EXISTS games (
   id SERIAL PRIMARY KEY,
   name VARCHAR(255) NOT NULL,
+  status VARCHAR(20) NOT NULL DEFAULT 'processing'
+    CHECK (status IN ('processing', 'ready', 'failed')),
+  error TEXT,
   description TEXT,
+  objective TEXT,
   game_types TEXT[],
   game_mechanics TEXT[],
-  min_players INTEGER NOT NULL CHECK (min_players > 0),
-  max_players INTEGER NOT NULL CHECK (max_players >= min_players),
+  min_players INTEGER CHECK (min_players > 0),
+  max_players INTEGER CHECK (max_players >= min_players),
   min_playtime_minutes INTEGER CHECK (min_playtime_minutes > 0),
   max_playtime_minutes INTEGER CHECK (max_playtime_minutes >= min_playtime_minutes),
   min_age INTEGER CHECK (min_age > 0),
@@ -14,50 +25,58 @@ CREATE TABLE IF NOT EXISTS games (
   year_published INTEGER,
   publisher VARCHAR(255),
   designer VARCHAR(255),
-  minio_rulebook_path VARCHAR(500),
-  minio_image_path VARCHAR(500),
+  cover_path VARCHAR(500),
+  -- Structured rules, shaped for the frontend's detail page.
+  components JSONB,
+  setup JSONB,
+  turn_structure JSONB,
+  rules JSONB,
+  win_conditions JSONB,
+  special_rules JSONB,
+  glossary JSONB,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- MinIO Documents (for storing multiple files per game)
+-- Files stored for a game (the rulebook PDF today). Paths are relative to
+-- the API's DATA_DIR volume.
 CREATE TABLE IF NOT EXISTS game_documents (
   id SERIAL PRIMARY KEY,
-  game_id INTEGER REFERENCES games(id) ON DELETE CASCADE,
+  game_id INTEGER NOT NULL REFERENCES games(id) ON DELETE CASCADE,
   document_type VARCHAR(50) NOT NULL,
-  minio_bucket VARCHAR(100) NOT NULL,
-  minio_object_path VARCHAR(500) NOT NULL,
+  file_path VARCHAR(500) NOT NULL,
   file_name VARCHAR(255) NOT NULL,
   file_size_bytes BIGINT,
   mime_type VARCHAR(100),
   uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE(game_id, minio_bucket, minio_object_path)
+  UNIQUE (game_id, file_path)
 );
 
--- Indexes for performance
-CREATE INDEX idx_games_name ON games(name);
-CREATE INDEX idx_games_players ON games(min_players, max_players);
-CREATE INDEX idx_games_playtime ON games(min_playtime_minutes, max_playtime_minutes);
-CREATE INDEX idx_game_documents_game_id ON game_documents(game_id);
-CREATE INDEX idx_game_documents_type ON game_documents(document_type);
+-- Rulebook text chunks for RAG. 768 = the embedding output_dimensionality
+-- set in games_rule_core.ai.config.
+CREATE TABLE IF NOT EXISTS rule_chunks (
+  id SERIAL PRIMARY KEY,
+  game_id INTEGER NOT NULL REFERENCES games(id) ON DELETE CASCADE,
+  page INTEGER NOT NULL,
+  content TEXT NOT NULL,
+  embedding vector(768) NOT NULL
+);
 
--- GIN indexes for array columns (fast searching within arrays)
-CREATE INDEX idx_games_types ON games USING GIN(game_types);
-CREATE INDEX idx_games_mechanics ON games USING GIN(game_mechanics);
+CREATE INDEX IF NOT EXISTS idx_games_name ON games(name);
+CREATE INDEX IF NOT EXISTS idx_games_types ON games USING GIN(game_types);
+CREATE INDEX IF NOT EXISTS idx_games_mechanics ON games USING GIN(game_mechanics);
+CREATE INDEX IF NOT EXISTS idx_game_documents_game_id ON game_documents(game_id);
+CREATE INDEX IF NOT EXISTS idx_rule_chunks_game_id ON rule_chunks(game_id);
+CREATE INDEX IF NOT EXISTS idx_rule_chunks_embedding
+  ON rule_chunks USING hnsw (embedding vector_cosine_ops);
 
--- Function to update the updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
   NEW.updated_at = CURRENT_TIMESTAMP;
   RETURN NEW;
 END;
-$$ language 'plpgsql';
+$$ LANGUAGE plpgsql;
 
--- Trigger to automatically update updated_at
-CREATE TRIGGER update_games_updated_at BEFORE UPDATE ON games
+CREATE OR REPLACE TRIGGER update_games_updated_at BEFORE UPDATE ON games
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
--- Grant permissions to gamesuser
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO gamesuser;
-GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO gamesuser;

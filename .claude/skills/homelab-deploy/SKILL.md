@@ -27,11 +27,11 @@ GitHub's cloud runners cannot reach the LAN, so the host pulls. A crontab line
 on the host runs every 15 min:
 
 ```
-*/15 * * * * cd ~/Documents/Projects/games_rule_chatbot && git pull -q --ff-only && docker compose -f deploy/compose.yaml up -d --pull always --quiet-pull >> ~/logs/games_rule_chatbot_deploy.log 2>&1
+*/15 * * * * cd ~/Documents/Projects/games_rule_chatbot && git pull -q --ff-only && flock -n /tmp/games_rule_chatbot-deploy.lock docker compose -f deploy/compose.yaml up -d --pull always --quiet-pull >> ~/logs/games_rule_chatbot_deploy.log 2>&1
 ```
 
 `up -d --pull always` recreates a container only when its image or config
-changed, so the idle runs do nothing. Merging to `main` → `deploy.yaml`
+changed, so the idle runs do nothing. Both the cron line and a manual deploy take the same `flock`. Without it, the two once raced to recreate the api container and left a `Conflict. The container name ... is already in use` error. Merging to `main` → `deploy.yaml`
 builds and pushes the images (only when `docker/api/pyproject.toml` or `frontend/package.json` version is new) →
 `latest` moves → cron picks it up within 15 min.
 
@@ -41,7 +41,7 @@ Run everything through `ssh homelab '<cmd>'`, from `~/Documents/Projects/games_r
 
 **Deploy now (skip the cron wait)**
 ```bash
-ssh homelab 'cd ~/Documents/Projects/games_rule_chatbot && git pull --ff-only && docker compose -f deploy/compose.yaml up -d --pull always'
+ssh homelab 'cd ~/Documents/Projects/games_rule_chatbot && git pull --ff-only && flock /tmp/games_rule_chatbot-deploy.lock docker compose -f deploy/compose.yaml up -d --pull always'
 ```
 
 **Status / health**

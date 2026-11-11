@@ -1,5 +1,8 @@
 # Release Notes
 
+## 0.3.1
+- Generated covers are saved as `cover.jpg` (Gemini returns JPEG); page renders stay `cover.png`.
+
 ## 0.3.0
 - Rulebook ingestion (`games_rule_core.ai.ingest`): Gemini extracts structured rules from the PDF, pages are chunked and embedded into pgvector, and a cover is either rendered from page 1 or generated.
 - ADK rules judge agent (`games_rule_core.ai.agent`) with rulebook search and game overview tools.

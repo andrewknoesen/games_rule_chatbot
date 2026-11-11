@@ -116,7 +116,8 @@ async def get_cover(
     game = await _game_or_404(session, game_id)
     if not game.cover_path or not data_path(game.cover_path).exists():
         raise HTTPException(status.HTTP_404_NOT_FOUND, "No cover image")
-    return FileResponse(data_path(game.cover_path), media_type="image/png")
+    # Content type follows the file extension (.png render or .jpg generated).
+    return FileResponse(data_path(game.cover_path))
 
 
 @router.get("/games/{game_id}/rulebook")

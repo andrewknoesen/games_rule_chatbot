@@ -282,7 +282,9 @@ async def ingest_game(game_id: int) -> None:
                 except Exception:  # a missing cover must not fail the game
                     logger.exception("cover generation failed for game %s", game_id)
             if cover:
-                rel = str(Path(doc.file_path).parent / "cover.png")
+                # Generated covers come back as JPEG; renders are PNG.
+                name = "cover.jpg" if cover[:2] == b"\xff\xd8" else "cover.png"
+                rel = str(Path(doc.file_path).parent / name)
                 data_path(rel).write_bytes(cover)
                 game.cover_path = rel
 

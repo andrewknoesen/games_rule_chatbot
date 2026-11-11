@@ -1,5 +1,8 @@
 # Release Notes
 
+## 0.3.1
+- `GET /games/{id}/cover` sends the content type that matches the stored file.
+
 ## 0.3.0
 - `POST /games/upload` takes a rulebook PDF and ingests it in the background.
 - `POST /games/{id}/ask` answers rules questions with the ADK judge.

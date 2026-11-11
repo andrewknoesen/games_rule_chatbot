@@ -10,7 +10,7 @@ services:
   postgres:
     # Pinned to 17: the 18 image moved its data dir, so a major bump needs a
     # dump/restore, not just a tag change.
-    image: postgres:17-alpine
+    image: postgres:18-alpine
     restart: unless-stopped
     mem_limit: 256m
     environment:

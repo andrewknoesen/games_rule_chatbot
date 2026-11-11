@@ -1,59 +1,41 @@
+# Built from the repo root (context "."), straight from the uv workspace, so
+# one PR ships a change to core + api + image together.
+#   docker build -f docker/api/Dockerfile .
+
 # Build stage
 FROM ghcr.io/astral-sh/uv:bookworm-slim AS builder
 
-# Enable bytecode compilation and copy mode for mounted volumes
-ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy
+ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy \
+    UV_PYTHON_INSTALL_DIR=/python UV_PYTHON_PREFERENCE=only-managed
 
-# Configure Python directory to be consistent
-ENV UV_PYTHON_INSTALL_DIR=/python
-
-# Only use the managed Python version
-ENV UV_PYTHON_PREFERENCE=only-managed
-
-# Install Python before the project for caching
 RUN uv python install 3.13
-
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends && \
-    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Install the project's dependencies using the lockfile and settings
+# Third-party deps first (cached until uv.lock changes).
 RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=uv.lock,target=uv.lock \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    uv sync --frozen --no-install-project --no-dev --no-editable
+    --mount=type=bind,source=libs,target=libs \
+    uv sync --frozen --no-dev --no-editable --package games_rule_api --no-install-workspace
 
-# Then, add the rest of the project source code and install it
-# Installing separately from its dependencies allows optimal layer caching
-COPY . /app
+# Then the workspace packages themselves.
+COPY pyproject.toml uv.lock ./
+COPY libs ./libs
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --no-dev --no-editable
+    uv sync --frozen --no-dev --no-editable --package games_rule_api
 
-# Clean up unnecessary files to reduce image size
-RUN find /app/.venv -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true && \
-    find /app/.venv -type f -name "*.py[co]" -delete && \
-    find /app/.venv -type d -name "tests" -o -name "test" | xargs rm -rf 2>/dev/null || true && \
-    find /app/.venv -type f -name "*.so" -exec strip --strip-unneeded {} \; 2>/dev/null || true && \
-    find /app/.venv -type d -name "locale" -exec rm -rf {} + 2>/dev/null || true
-
-# CMD ["uv", "run", "uvicorn", "main:app", "--host", "0.0.0.0"]
+RUN find /app/.venv -type d -name "__pycache__" -prune -exec rm -rf {} + 2>/dev/null || true
 
 # Runtime stage - minimal distroless image
 FROM gcr.io/distroless/cc-debian12
 
 WORKDIR /app
 
-# Copy Python from builder
 COPY --from=builder /python /python
-
-# Copy the application from builder
 COPY --from=builder /app/.venv /app/.venv
-COPY --from=builder /app /app
+COPY docker/api/main.py /app/main.py
 
-# Add Python to PATH
-ENV PATH="/python/bin:/app/.venv/bin:$PATH"
-ENV PYTHONUNBUFFERED=1
+ENV PATH="/python/bin:/app/.venv/bin:$PATH" PYTHONUNBUFFERED=1
 
 CMD ["/app/.venv/bin/uvicorn", "main:app", "--host", "0.0.0.0"]

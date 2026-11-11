@@ -8,7 +8,7 @@ from .config import settings  # Import the settings instance
 # Use settings.database_url to create the engine
 async_engine = create_async_engine(
     settings.database_url,  # This reads from your Settings Pydantic model
-    echo=True,
+    echo=False,
     future=True,
     pool_pre_ping=True,
     pool_size=20,

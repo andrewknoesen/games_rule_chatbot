@@ -1,14 +1,7 @@
+# Version source for the api_image tag only. The image is built from the uv
+# workspace (see Dockerfile); bump `version` to publish a new image.
 [project]
 name = "api_image"
-version = "0.1.7"
-description = "A package for running the games rule api"
-readme = "README.md"
+version = "0.2.0"
+description = "Container image running the games rule API"
 requires-python = ">=3.11"
-dependencies = [
-    "games_rule_api==0.2.5",
-]
-
-[[tool.uv.index]]
-name = "github-pypi"
-url = "https://andrewknoesen.github.io/games_rule_chatbot/simple/"
-default = false

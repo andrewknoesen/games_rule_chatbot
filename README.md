@@ -1,55 +1,36 @@
 ## Games Rule Chatbot
 
-A chatbot that will be able to answer questions about games based on their rules.
+Upload a board game's rulebook PDF and the game is added to your library:
 
-### Project Structure
+- Gemini reads the rulebook and extracts players, playtime, components, setup, turn structure, rules and a glossary.
+- The pages are embedded into pgvector so a rules judge can answer questions about them.
+- The judge is a Google ADK agent that cites page numbers.
+- A thumbnail comes from the rulebook's cover page. If page 1 isn't a cover photo, Gemini generates one.
+
+### Layout
 
 ```
-libs/           # Internal libraries
-├── core        # Core business logic
-├── mcp         # MCP server implementation
-└── vector      # Vector database operations
-
-infra/          # Infrastructure code
-├── terraform/  # IaC configurations
-└── kubernetes/ # K8s manifests
+libs/core      games_rule_core: DB models/session, ai/ (ingestion, RAG, ADK agent)
+libs/api       games_rule_api: FastAPI routes (upload, games, cover, ask)
+docker/api     API image (built from the uv workspace) + its version
+frontend/      React UI (Vite), served by nginx, proxies /api
+deploy/        Homelab Docker Compose stack + Postgres schema
+.claude/skills homelab-deploy and release workflows for Claude Code
 ```
-
-### Package release
-
-For this we are simulating PyPi by hosting a page on github pages. This will be done on the branch `gh-pages`. Not this branch must never be manuall committed to and must only be done via the github action.
-
-#### How to Enable GitHub Pages
-	•	Go to your repository’s Settings > Pages (or “Code and automation” > “Pages”).
-	•	Under Source, select your  gh-pages  branch (or whichever branch you’re using for the index).
-	•	If prompted, choose the root ( / ) or the appropriate folder as the site directory.
-	•	Save the changes. GitHub will provide a URL like  https://yourorg.github.io/yourrepo/  that you can use as your --extra-index-url  for pip installs.
 
 ### Development
 
-1. Create virtual environment:
 ```bash
-python -m venv .venv
-source .venv/bin/activate  # Linux/Mac
-.venv\Scripts\activate     # Windows
+uv sync
+uv run pytest libs/core/tests -q --no-cov
+cd frontend && npm ci && npm run dev   # proxies /api to localhost:8000
 ```
 
-2. Install dependencies:
-```bash
-pip install -e ".[dev]"
-```
+Checks run in CI on every PR (`.github/workflows/ci.yaml`): ruff, mypy `--strict`, tests, release notes, compose config, and the frontend build. Install the hooks with `uv run pre-commit install`.
 
-3. Install pre-commit hooks:
-```bash
-pre-commit install
-```
+### Releases and deployment
 
-### Running Tests
+- Bump a version and merge to `main`. `deploy.yaml` then publishes the wheels to the gh-pages index and the images to GHCR. The `release` skill has the details.
+- The app runs on the homelab host as the Compose stack in `deploy/`. A cron job on the host pulls new images every 15 minutes. The `homelab-deploy` skill has the details.
 
-```bash
-pytest
-```
-
-### Deployment
-
-See `infra/` directory for deployment configurations.
+`charts/` is the old Kubernetes deployment and is no longer used.

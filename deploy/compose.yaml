@@ -1,18 +1,18 @@
 # Homelab deployment (192.168.0.200, plain Docker Compose — no Kubernetes on
 # that host, see homelab repo memory/k3s-removed.md).
 #
-# Needs deploy/.env with POSTGRES_PASSWORD (see .env.example).
+# Needs deploy/.env with POSTGRES_PASSWORD and GOOGLE_API_KEY (see .env.example).
 # The host cron runs `up -d --pull always` every 15 min, so a new image
 # pushed to GHCR (`latest`) or a change merged here goes live automatically.
 name: games_rule_chatbot
 
 services:
   postgres:
-    # Pinned to 17: the 18 image moved its data dir, so a major bump needs a
-    # dump/restore, not just a tag change.
-    image: postgres:17-alpine
+    # Postgres 17 + pgvector. Pinned to 17: the 18 image moved its data dir,
+    # so a major bump needs a dump/restore, not just a tag change.
+    image: pgvector/pgvector:pg17
     restart: unless-stopped
-    mem_limit: 256m
+    mem_limit: 384m
     environment:
       POSTGRES_DB: games
       POSTGRES_USER: gamesuser
@@ -30,7 +30,12 @@ services:
   api:
     image: ghcr.io/andrewknoesen/api_image:${API_TAG:-latest}
     restart: unless-stopped
-    mem_limit: 256m
+    # PDF rendering and the Gemini/ADK clients need more than the old 256m.
+    mem_limit: 768m
+    # Passes optional overrides (CHAT_MODEL, IMAGE_MODEL, ...) from .env.
+    env_file:
+      - path: .env
+        required: false
     depends_on:
       postgres:
         condition: service_healthy
@@ -40,6 +45,11 @@ services:
       POSTGRES_DB: games
       POSTGRES_USER: gamesuser
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in deploy/.env}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY:?set GOOGLE_API_KEY in deploy/.env}
+      DATA_DIR: /data
+    volumes:
+      # Rulebook PDFs and cover images (paths in the DB are relative to it).
+      - files:/data
     # LAN/tailnet only (8000 is taken on the host). No auth on the API yet,
     # so do not route it through Traefik/Cloudflare without Authelia.
     ports:
@@ -55,5 +65,16 @@ services:
       timeout: 5s
       retries: 3
 
+  ui:
+    image: ghcr.io/andrewknoesen/games_ui:${UI_TAG:-latest}
+    restart: unless-stopped
+    mem_limit: 64m
+    depends_on:
+      - api
+    # Web UI; proxies /api to the api service. LAN/tailnet only, no auth.
+    ports:
+      - "8721:3000"
+
 volumes:
   pgdata:
+  files:

@@ -1,5 +1,11 @@
 # Release Notes
 
+## 0.3.0
+- `POST /games/upload` takes a rulebook PDF and ingests it in the background.
+- `POST /games/{id}/ask` answers rules questions with the ADK judge.
+- `GET /games/{id}/cover` and `GET /games/{id}/rulebook` serve the stored files; `DELETE /games/{id}` removes a game and its files.
+- Replaced the manual `POST /games/` and `/games/{id}/rulebooks` routes.
+- Games left `processing` by a restart are marked `failed` at startup.
 
 ## 0.2.5
 - imported new core package

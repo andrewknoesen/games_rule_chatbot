@@ -185,7 +185,9 @@ export default function GameDetailPage() {
         <Section title="Win Conditions">
           <ul style={{ paddingLeft: 'var(--space-5)', display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
             {game.win_conditions.map((w, i) => (
-              <li key={i} style={{ color: 'var(--text-muted)' }}>{w}</li>
+              <li key={i} style={{ color: 'var(--text-muted)' }}>
+                {typeof w === 'string' ? w : w.condition ?? w.description ?? JSON.stringify(w)}
+              </li>
             ))}
           </ul>
         </Section>

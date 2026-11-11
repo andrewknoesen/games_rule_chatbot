@@ -11,6 +11,12 @@
       "enabled": false
     },
     {
+      "description": "Postgres major bumps need a dump/restore (the data dir moved in 18); do them by hand",
+      "matchPackageNames": ["postgres", "pgvector/pgvector"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    },
+    {
       "matchPackagePatterns": ["*"],
       "groupName": "all dependencies",
       "schedule": ["every weekend"]

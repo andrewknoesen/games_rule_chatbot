@@ -1,6 +1,6 @@
 [project]
 name = "games_rule_core"
-version = "0.4.0"
+version = "0.5.0"
 description = "Storage controller component for games_rule_chatbot."
 authors = [
     { name = "Andrew Knoesen", email = "andrewknoesen@gmail.com" }

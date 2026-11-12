@@ -17,7 +17,7 @@ const mb = bytes => `${(bytes / 1024 / 1024).toFixed(1)} MB`
 export default function UploadPage() {
   const [tab, setTab] = useState('bgg')
   const tabs = [
-    { id: 'bgg', label: 'Find on BoardGameGeek' },
+    { id: 'bgg', label: 'Find on BGG' },
     { id: 'pdf', label: 'Upload a PDF' },
   ]
   const onKey = e => {

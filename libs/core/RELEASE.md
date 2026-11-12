@@ -1,5 +1,10 @@
 # Release Notes
 
+## 0.5.0
+- BGG game search (`bgg.search_games`, best name match first, then most rated) and game details (`bgg.get_game`).
+- `games_rule_core.ai.rulebook` finds a game's official rulebook PDF with Gemini and Google Search, downloads it (https and public hosts only, at most 50 MB, must be a PDF) and keeps it as a candidate until confirmed.
+- A game created from a picked BGG game keeps that game's name, year and box art during ingestion.
+
 ## 0.4.0
 - Covers come from BoardGameGeek box art when `BGG_TOKEN` is set (`games_rule_core.ai.bgg`), before the page-1 render or a generated image. The game's BGG id is stored in the new `games.bgg_id` column.
 - `python -m games_rule_core.ai.ingest` swaps in BGG box art for games ingested before.

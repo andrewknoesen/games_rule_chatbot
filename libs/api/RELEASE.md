@@ -1,5 +1,11 @@
 # Release Notes
 
+## 0.4.0
+- `GET /bgg/search?q=` searches BoardGameGeek.
+- `POST /bgg/{bgg_id}/rulebook` looks for the official rulebook online; `GET /candidates/{id}/preview` shows its first page.
+- `POST /games/from-bgg` adds a game from a confirmed rulebook.
+- `POST /games/upload` accepts an optional `bgg_id` form field.
+
 ## 0.3.2
 - Pins games_rule_core 0.4.0 (BGG box art); game responses include `bgg_id`.
 

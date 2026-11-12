@@ -4,8 +4,6 @@
 import asyncio
 import os
 
-import pytest
-
 os.environ.setdefault("POSTGRES_USER", "test")
 os.environ.setdefault("POSTGRES_PASSWORD", "test")
 os.environ.setdefault("POSTGRES_DB", "test")
@@ -47,15 +45,15 @@ def test_public_address() -> None:
         assert not public_address(addr), addr
 
 
-@pytest.mark.parametrize(
-    "url",
-    [
+def test_download_refuses_unsafe_urls() -> None:
+    for url in (
         "http://example.com/r.pdf",
         "https://localhost/r.pdf",
         "https://127.0.0.1/r.pdf",
         "https://192.168.0.200:8720/r.pdf",
-    ],
-)
-def test_download_refuses_unsafe_urls(url: str) -> None:
-    with pytest.raises(UnsafeUrl):
-        asyncio.run(download_pdf(url))
+    ):
+        try:
+            asyncio.run(download_pdf(url))
+        except UnsafeUrl:
+            continue
+        raise AssertionError(f"downloaded {url}")

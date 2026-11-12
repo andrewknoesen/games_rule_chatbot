@@ -62,7 +62,9 @@ Query examples: [docs/db_query_ref.md](../../../docs/db_query_ref.md).
 (tags list: `curl -s` the GHCR tags API or check GitHub releases `api_image-*`),
 then `up -d`. Remove the line to return to `latest`.
 
-**BGG box art**: covers come from BoardGameGeek only when `BGG_TOKEN` is in the host's `deploy/.env`. The user registers a non-commercial app at https://boardgamegeek.com/applications and creates the token there; the user enters it, never Claude. After adding it, run `docker compose -f deploy/compose.yaml up -d api`, then backfill older games with `docker compose -f deploy/compose.yaml exec api python3 -m games_rule_core.ai.ingest`. A `401` in the api logs means the token is missing or revoked; ingestion then falls back to the rulebook or a generated cover.
+**BGG box art**: covers come from BoardGameGeek only when `BGG_TOKEN` is in the host's `deploy/.env`. The user registers a non-commercial app at https://boardgamegeek.com/applications and creates the token there; the user enters it, never Claude. After adding it, run `docker compose -f deploy/compose.yaml up -d api`, then backfill older games with `docker compose -f deploy/compose.yaml exec api python3 -m games_rule_core.ai.ingest`. A `401` in the api logs means the token is missing or revoked; ingestion then falls back to the rulebook or a generated cover, and the Add game page's BGG search returns 503.
+
+**Rulebook auto-find**: `POST /bgg/{id}/rulebook` asks Gemini with Google Search for PDF links (Gemini 3 bills about 1–3 searches per lookup; 5,000 a month are free). Rejected links are logged at INFO as `rulebook candidate rejected`. Found PDFs wait in `/data/candidates/` until confirmed and are deleted after 24 hours.
 
 **Backup** (do this before any schema change or Postgres major bump). Take the DB and the files together:
 ```bash

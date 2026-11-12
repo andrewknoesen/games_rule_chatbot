@@ -17,7 +17,8 @@ box and was removed on 2026-08-29. Do not reintroduce Helm/k3s/Argo CD there.
 
 - Host checkout: `~/Documents/Projects/games_rule_chatbot` (https clone of the public repo)
 - Secrets: `deploy/.env` on the host only. It holds `POSTGRES_PASSWORD`, `GOOGLE_API_KEY`, and optionally `API_TAG`, `UI_TAG` and model overrides such as `CHAT_MODEL`.
-- UI: `http://192.168.0.200:8721`. API: `http://192.168.0.200:8720`. Both are LAN/tailnet only, with no auth. Every upload and question costs Gemini money, so never route them publicly.
+- Public: `https://games.knoesen.link`, behind Authelia (route `games` in the Networking repo's `docker_stack/config/traefik/traefik_dynamic.yml`, pointing at the UI on :8721; Authelia's `*.knoesen.link` one_factor rule covers it).
+- LAN/tailnet: UI `http://192.168.0.200:8721`, API `http://192.168.0.200:8720`, both with no auth. Every upload, rulebook search and question costs Gemini money, so never route either port publicly without Authelia, and never route the API port on its own.
 - Files: the `games_rule_chatbot_files` volume, mounted at `/data`, holds `games/<id>/rulebook.pdf` and `cover.png`.
 - Memory caps: api 768m, postgres 384m, ui 64m. Host RAM is tight, so check `free -h` before raising them.
 

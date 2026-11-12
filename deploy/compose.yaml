@@ -51,8 +51,8 @@ services:
     volumes:
       # Rulebook PDFs and cover images (paths in the DB are relative to it).
       - files:/data
-    # LAN/tailnet only (8000 is taken on the host). No auth on the API yet,
-    # so do not route it through Traefik/Cloudflare without Authelia.
+    # LAN/tailnet only (8000 is taken on the host). No auth on the API, so
+    # never route this port publicly; the public route goes through the UI.
     ports:
       - "8720:8000"
     healthcheck:
@@ -72,7 +72,8 @@ services:
     mem_limit: 64m
     depends_on:
       - api
-    # Web UI; proxies /api to the api service. LAN/tailnet only, no auth.
+    # Web UI; proxies /api to the api service. No auth of its own: public
+    # access is https://games.knoesen.link via Traefik + Authelia.
     ports:
       - "8721:3000"
 

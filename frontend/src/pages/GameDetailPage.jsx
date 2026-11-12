@@ -1,43 +1,104 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import GameJudgeChat from './GameJudgeChat'
+import './GameDetailPage.css'
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
-function Section({ title, children }) {
+const text = (v, ...keys) =>
+  typeof v === 'string' ? v : keys.map(k => v?.[k]).find(Boolean) ?? ''
+
+function groupBy(items, fallback) {
+  return (items || []).reduce((acc, r) => {
+    const key = r.category || fallback
+      ; (acc[key] = acc[key] || []).push(r)
+    return acc
+  }, {})
+}
+
+function range(min, max, unit) {
+  if (min == null) return null
+  return `${min}${max && max !== min ? `–${max}` : ''} ${unit}`
+}
+
+const Icon = {
+  players: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+      <circle cx="9" cy="8" r="3.5" /><path d="M2.5 20a6.5 6.5 0 0 1 13 0" /><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14a6.5 6.5 0 0 1 3.5 6" />
+    </svg>
+  ),
+  time: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" />
+    </svg>
+  ),
+  age: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+      <circle cx="12" cy="7" r="3.5" /><path d="M5 21v-2a7 7 0 0 1 14 0v2" />
+    </svg>
+  ),
+  pdf: (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><path d="M14 2v6h6M12 12v6M9 15l3 3 3-3" />
+    </svg>
+  ),
+}
+
+// Complexity (1–5) as dice pips, the same motif as the app's logo.
+function Weight({ value }) {
+  const filled = Math.round(value)
   return (
-    <section style={{ marginBottom: 'var(--space-10)' }}>
-      <h2 style={{
-        fontSize: 'var(--text-lg)',
-        fontWeight: 700,
-        marginBottom: 'var(--space-4)',
-        paddingBottom: 'var(--space-3)',
-        borderBottom: '1px solid var(--divider)',
-      }}>
-        {title}
-      </h2>
-      {children}
-    </section>
+    <span className="gd-fact" aria-label={`Complexity ${value} out of 5`}>
+      <span className="gd-pips" aria-hidden="true">
+        {[1, 2, 3, 4, 5].map(n => <span key={n} className={`gd-pip${n <= filled ? ' on' : ''}`} />)}
+      </span>
+      <span aria-hidden="true">Complexity <span className="gd-num">{value.toFixed(1)}</span></span>
+    </span>
   )
 }
 
-function Chip({ label, icon }) {
+// Highlights the section in view in the side / top nav.
+function useActiveSection(ids) {
+  const [active, setActive] = useState(ids[0])
+  const key = ids.join(',')
+  useEffect(() => {
+    if (!ids.length) return
+    const seen = new Map()
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(e => seen.set(e.target.id, e.isIntersecting))
+      const first = ids.find(id => seen.get(id))
+      if (first) setActive(first)
+    }, { rootMargin: '-120px 0px -55% 0px' })
+    ids.forEach(id => { const el = document.getElementById(id); if (el) io.observe(el) })
+    return () => io.disconnect()
+  }, [key])
+  return active
+}
+
+function RefList({ items }) {
   return (
-    <span style={{
-      display: 'inline-flex',
-      alignItems: 'center',
-      gap: 'var(--space-1)',
-      fontSize: 'var(--text-xs)',
-      fontWeight: 500,
-      background: 'var(--primary-hl)',
-      color: 'var(--primary)',
-      padding: '2px var(--space-2)',
-      borderRadius: '999px',
-    }}>
-      {icon && <span aria-hidden="true">{icon}</span>}
-      {label}
-    </span>
+    <dl className="gd-ref">
+      {items.map((r, i) => (
+        <div key={i}>
+          <dt>{r.title ?? r.name ?? r.term}</dt>
+          <dd>
+            {text(r, 'description', 'definition', 'rule', 'text')}
+            {r.condition && <span className="gd-cond">When: {r.condition}</span>}
+          </dd>
+        </div>
+      ))}
+    </dl>
   )
+}
+
+function Grouped({ groups, alwaysHead }) {
+  const entries = Object.entries(groups)
+  return entries.map(([cat, items]) => (
+    <div key={cat}>
+      {(alwaysHead || entries.length > 1) && <h3>{cat}</h3>}
+      <RefList items={items} />
+    </div>
+  ))
 }
 
 // ─── main component ──────────────────────────────────────────────────────────
@@ -63,6 +124,65 @@ export default function GameDetailPage() {
     return () => clearTimeout(timer)
   }, [id])
 
+  const g = game || {}
+  const sections = [
+    g.components?.length > 0 && {
+      id: 'components', title: 'Components', body: (
+        <ul className="gd-components">
+          {g.components.map((c, i) => (
+            <li key={i}>
+              <span className="gd-qty">{c.quantity ?? '·'}</span>
+              <div><strong>{c.name}</strong>{c.description && <p>{c.description}</p>}</div>
+            </li>
+          ))}
+        </ul>
+      ),
+    },
+    g.setup?.length > 0 && {
+      id: 'setup', title: 'Setup', body: (
+        <ol className="gd-steps">
+          {g.setup.map((s, i) => <li key={i}>{text(s, 'instruction', 'text')}</li>)}
+        </ol>
+      ),
+    },
+    g.turn_structure?.length > 0 && {
+      id: 'turn', title: 'On your turn', body: (
+        <ol className="gd-turn">
+          {g.turn_structure.map((t, i) => (
+            <li key={i}>
+              <span className="gd-turn-dot" aria-hidden="true">{i + 1}</span>
+              <strong>{t.phase}</strong>
+              <p>{t.description}</p>
+            </li>
+          ))}
+        </ol>
+      ),
+    },
+    g.rules?.length > 0 && {
+      id: 'rules', title: 'Rules', body: <Grouped groups={groupBy(g.rules, 'General')} alwaysHead />,
+    },
+    g.special_rules?.length > 0 && {
+      id: 'special', title: 'Special rules', body: <Grouped groups={groupBy(g.special_rules, 'General')} />,
+    },
+    g.glossary?.length > 0 && {
+      id: 'glossary', title: 'Glossary', body: <RefList items={g.glossary} />,
+    },
+  ].filter(Boolean)
+
+  const active = useActiveSection(sections.map(s => s.id))
+
+  // The app header is sticky and its height changes with width; the section
+  // nav sticks right under it.
+  const pageRef = useRef(null)
+  useEffect(() => {
+    const header = document.querySelector('body > #root header')
+    const page = pageRef.current
+    if (!header || !page) return
+    const ro = new ResizeObserver(() => page.style.setProperty('--gd-header', `${header.offsetHeight}px`))
+    ro.observe(header)
+    return () => ro.disconnect()
+  }, [loading])
+
   if (loading) return (
     <div style={{ padding: 'var(--space-8)' }}>
       <SkeletonLoader />
@@ -70,359 +190,111 @@ export default function GameDetailPage() {
   )
   if (!game) return null
 
-  const groupedRules = (game.rules || []).reduce((acc, r) => {
-    ; (acc[r.category] = acc[r.category] || []).push(r)
-    return acc
-  }, {})
-
-  const groupedSpecialRules = (game.special_rules || []).reduce((acc, r) => {
-    const key = r.category || 'General'
-      ; (acc[key] = acc[key] || []).push(r)
-    return acc
-  }, {})
+  const cover = game.cover_path ? `/api/games/${id}/cover` : null
+  const credits = [game.year_published, game.publisher, game.designer].filter(Boolean).join(' · ')
+  const players = range(game.min_players, game.max_players, 'players')
+  const time = range(game.min_playtime_minutes, game.max_playtime_minutes, 'min')
+  const tags = [...(game.game_types || []), ...(game.game_mechanics || [])]
+  const wins = (game.win_conditions || []).map(w => text(w, 'condition', 'description')).filter(Boolean)
 
   return (
-    <div style={{ maxWidth: '800px' }}>
-
-      {/* ── back link ── */}
-      <Link
-        to="/"
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 'var(--space-2)',
-          fontSize: 'var(--text-sm)',
-          color: 'var(--text-muted)',
-          marginBottom: 'var(--space-6)',
-          textDecoration: 'none',
-        }}
-      >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <div className="gd" ref={pageRef}>
+      <Link to="/" className="gd-back">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
           <path d="M19 12H5M12 19l-7-7 7-7" />
         </svg>
         All games
       </Link>
 
-      {/* ── title row ── */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'flex-start',
-        justifyContent: 'space-between',
-        gap: 'var(--space-4)',
-        marginBottom: 'var(--space-2)',
-        flexWrap: 'wrap',
-      }}>
-        <h1 style={{ fontSize: 'var(--text-xl)', fontWeight: 700 }}>{game.name}</h1>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', flexWrap: 'wrap' }}>
-          {game.bgg_id && (
-            <a
-              href={`https://boardgamegeek.com/boardgame/${game.bgg_id}`}
-              target="_blank"
-              rel="noreferrer"
-              title="Box art from BoardGameGeek"
-              style={{ fontSize: 'var(--text-sm)', color: 'var(--text-muted)' }}
-            >
-              Powered by BGG
-            </a>
-          )}
-          <a
-            href={`/api/games/${id}/rulebook`}
-            target="_blank"
-            rel="noreferrer"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 'var(--space-2)',
-              fontSize: 'var(--text-sm)',
-              color: 'var(--primary)',
-              background: 'var(--primary-hl)',
-              padding: 'var(--space-2) var(--space-3)',
-              borderRadius: 'var(--radius-md)',
-              textDecoration: 'none',
-              flexShrink: 0,
-            }}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-              <polyline points="14 2 14 8 20 8" />
-            </svg>
-            Rulebook PDF
-          </a>
-        </div>
-      </div>
+      {/* ── hero ── */}
+      <header className={`gd-hero${cover ? ' has-cover' : ''}`}>
+        {cover && <div className="gd-wash" style={{ backgroundImage: `url(${cover})` }} aria-hidden="true" />}
+        {cover && <img className="gd-cover" src={cover} alt={`${game.name} box art`} />}
+        <div>
+          <h1 className="gd-title">{game.name}</h1>
+          {credits && <p className="gd-credits">{credits}</p>}
+          {game.description && <p className="gd-desc">{game.description}</p>}
 
-      {game.status === 'processing' && (
-        <p role="status" style={{ background: 'var(--surface-offset)', borderRadius: 'var(--radius-lg)', padding: 'var(--space-4)', marginBottom: 'var(--space-6)', fontSize: 'var(--text-sm)' }}>
-          Reading the rulebook: extracting rules, indexing pages and making a cover. This takes a minute or two.
-        </p>
-      )}
-      {game.status === 'failed' && (
-        <p role="alert" style={{ color: 'var(--error)', background: 'var(--surface-offset)', borderRadius: 'var(--radius-lg)', padding: 'var(--space-4)', marginBottom: 'var(--space-6)', fontSize: 'var(--text-sm)' }}>
-          Couldn't process this rulebook: {game.error || 'unknown error'}. Delete it and upload again.
-        </p>
-      )}
-
-      {/* ── meta chips ── */}
-      <div style={{
-        display: 'flex',
-        gap: 'var(--space-3)',
-        flexWrap: 'wrap',
-        marginBottom: 'var(--space-6)',
-      }}>
-        {game.min_players != null && (
-          <Chip
-            icon="👥"
-            label={`${game.min_players}${game.max_players ? `–${game.max_players}` : '+'} players`}
-          />
-        )}
-        {game.min_playtime_minutes != null && (
-          <Chip
-            icon="⏱"
-            label={`${game.min_playtime_minutes}${game.max_playtime_minutes && game.max_playtime_minutes !== game.min_playtime_minutes ? `–${game.max_playtime_minutes}` : ''} min`}
-          />
-        )}
-        {game.min_age != null && (
-          <Chip icon="🎂" label={`Age ${game.min_age}+`} />
-        )}
-      </div>
-
-      {/* ── objective ── */}
-      {game.objective && (
-        <Section title="Objective">
-          <p style={{ color: 'var(--text-muted)', lineHeight: 1.7 }}>{game.objective}</p>
-        </Section>
-      )}
-
-      {/* ── win conditions ── */}
-      {game.win_conditions?.length > 0 && (
-        <Section title="Win Conditions">
-          <ul style={{ paddingLeft: 'var(--space-5)', display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-            {game.win_conditions.map((w, i) => (
-              <li key={i} style={{ color: 'var(--text-muted)' }}>
-                {typeof w === 'string' ? w : w.condition ?? w.description ?? JSON.stringify(w)}
-              </li>
-            ))}
-          </ul>
-        </Section>
-      )}
-
-      {/* ── components ── */}
-      {game.components?.length > 0 && (
-        <Section title="Components">
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--text-sm)' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid var(--divider)' }}>
-                {['Component', 'Qty', 'Notes'].map(h => (
-                  <th
-                    key={h}
-                    style={{
-                      textAlign: 'left',
-                      padding: 'var(--space-2) var(--space-3)',
-                      color: 'var(--text-muted)',
-                      fontWeight: 500,
-                    }}
-                  >
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {game.components.map((c, i) => (
-                <tr key={i} style={{ borderBottom: '1px solid var(--divider)' }}>
-                  <td style={{ padding: 'var(--space-2) var(--space-3)', fontWeight: 500 }}>{c.name}</td>
-                  <td style={{
-                    padding: 'var(--space-2) var(--space-3)',
-                    color: 'var(--text-muted)',
-                    fontVariantNumeric: 'tabular-nums',
-                  }}>
-                    {c.quantity}
-                  </td>
-                  <td style={{ padding: 'var(--space-2) var(--space-3)', color: 'var(--text-muted)' }}>
-                    {c.description ?? '—'}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </Section>
-      )}
-
-      {/* ── setup ── */}
-      {game.setup?.length > 0 && (
-        <Section title="Setup">
-          <ol style={{ paddingLeft: 'var(--space-5)', display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-            {game.setup.map((s, i) => (
-              <li key={i} style={{ color: 'var(--text-muted)', lineHeight: 1.6 }}>
-                {typeof s === 'string' ? s : s.instruction ?? s.text ?? JSON.stringify(s)}
-              </li>
-            ))}
-          </ol>
-        </Section>
-      )}
-
-      {/* ── turn structure ── */}
-      {game.turn_structure?.length > 0 && (
-        <Section title="Turn Structure">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-            {game.turn_structure.map((t, i) => (
-              <div key={i} style={{ display: 'flex', gap: 'var(--space-4)', alignItems: 'flex-start' }}>
-                <span style={{
-                  flexShrink: 0,
-                  width: '28px', height: '28px',
-                  borderRadius: '999px',
-                  background: 'var(--primary-hl)',
-                  color: 'var(--primary)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 'var(--text-xs)', fontWeight: 700,
-                }}>
-                  {i + 1}
-                </span>
-                <div>
-                  <p style={{ fontWeight: 600, fontSize: 'var(--text-sm)', marginBottom: '2px' }}>{t.phase}</p>
-                  <p style={{ color: 'var(--text-muted)', fontSize: 'var(--text-sm)', lineHeight: 1.6 }}>{t.description}</p>
-                </div>
-              </div>
-            ))}
+          <div className="gd-facts">
+            {players && <span className="gd-fact">{Icon.players}{players}</span>}
+            {time && <span className="gd-fact">{Icon.time}{time}</span>}
+            {game.min_age != null && <span className="gd-fact">{Icon.age}Ages {game.min_age}+</span>}
+            {game.complexity_rating != null && <Weight value={game.complexity_rating} />}
           </div>
-        </Section>
+
+          {tags.length > 0 && (
+            <ul className="gd-tags" aria-label="Game type and mechanics" style={{ listStyle: 'none' }}>
+              {tags.map(t => <li key={t} className="gd-tag">{t}</li>)}
+            </ul>
+          )}
+
+          <div className="gd-actions">
+            <a className="gd-btn" href={`/api/games/${id}/rulebook`} target="_blank" rel="noreferrer">
+              {Icon.pdf}Rulebook PDF
+            </a>
+            {game.bgg_id && (
+              <a className="gd-link" href={`https://boardgamegeek.com/boardgame/${game.bgg_id}`} target="_blank" rel="noreferrer" title="Box art from BoardGameGeek">
+                Powered by BGG
+              </a>
+            )}
+          </div>
+
+          {game.status === 'processing' && (
+            <p role="status" className="gd-banner">
+              Reading the rulebook: extracting rules, indexing pages and making a cover. This takes a minute or two.
+            </p>
+          )}
+          {game.status === 'failed' && (
+            <p role="alert" className="gd-banner error">
+              Couldn't process this rulebook: {game.error || 'unknown error'}. Delete it and upload again.
+            </p>
+          )}
+        </div>
+      </header>
+
+      {/* ── how to win ── */}
+      {(game.objective || wins.length > 0) && (
+        <section className="gd-goal" aria-labelledby="gd-goal-h">
+          <div>
+            <h2 id="gd-goal-h">How to win</h2>
+            {game.objective && <p className="gd-goal-text">{game.objective}</p>}
+          </div>
+          {wins.length > 0 && (
+            <ul aria-label="Win conditions">
+              {wins.map((w, i) => <li key={i}>{w}</li>)}
+            </ul>
+          )}
+        </section>
       )}
 
-      {/* ── rules ── */}
-      {Object.keys(groupedRules).length > 0 && (
-        <Section title="Rules">
-          {Object.entries(groupedRules).map(([cat, rules]) => (
-            <div key={cat} style={{ marginBottom: 'var(--space-6)' }}>
-              <h3 style={{
-                fontSize: 'var(--text-sm)',
-                fontWeight: 600,
-                textTransform: 'uppercase',
-                letterSpacing: '0.06em',
-                color: 'var(--primary)',
-                marginBottom: 'var(--space-3)',
-              }}>
-                {cat}
-              </h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-                {rules.map((r, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      background: 'var(--surface-offset)',
-                      borderRadius: 'var(--radius-lg)',
-                      padding: 'var(--space-4)',
-                    }}
-                  >
-                    <p style={{ fontWeight: 600, marginBottom: 'var(--space-1)', fontSize: 'var(--text-sm)' }}>{r.title}</p>
-                    <p style={{ color: 'var(--text-muted)', fontSize: 'var(--text-sm)', lineHeight: 1.6 }}>{r.description}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </Section>
-      )}
-
-      {/* ── special rules ── */}
-      {Object.keys(groupedSpecialRules).length > 0 && (
-        <Section title="Special Rules">
-          {Object.entries(groupedSpecialRules).map(([cat, srules]) => (
-            <div key={cat} style={{ marginBottom: 'var(--space-6)' }}>
-              {/* Only show category heading if there's more than one category */}
-              {Object.keys(groupedSpecialRules).length > 1 && (
-                <h3 style={{
-                  fontSize: 'var(--text-sm)',
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.06em',
-                  color: 'var(--primary)',
-                  marginBottom: 'var(--space-3)',
-                }}>
-                  {cat}
-                </h3>
-              )}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-                {srules.map((r, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      background: 'var(--surface-offset)',
-                      borderRadius: 'var(--radius-lg)',
-                      padding: 'var(--space-4)',
-                      borderLeft: 'none', // resist the temptation of colored side borders
-                    }}
-                  >
-                    {/* title — may be stored as r.title, r.name, or be a plain string */}
-                    {(r.title || r.name) && (
-                      <p style={{ fontWeight: 600, marginBottom: 'var(--space-1)', fontSize: 'var(--text-sm)' }}>
-                        {r.title ?? r.name}
-                      </p>
-                    )}
-                    <p style={{ color: 'var(--text-muted)', fontSize: 'var(--text-sm)', lineHeight: 1.6 }}>
-                      {typeof r === 'string' ? r : (r.description ?? r.rule ?? r.text ?? JSON.stringify(r))}
-                    </p>
-                    {/* optional "condition" sub-field (e.g. when the rule applies) */}
-                    {r.condition && (
-                      <p style={{
-                        marginTop: 'var(--space-2)',
-                        fontSize: 'var(--text-xs)',
-                        color: 'var(--primary)',
-                        fontWeight: 500,
-                      }}>
-                        Condition: {r.condition}
-                      </p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </Section>
-      )}
-
-      {/* ── glossary ── */}
-      {game.glossary?.length > 0 && (
-        <Section title="Glossary">
-          <dl style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-            {game.glossary.map((g, i) => (
-              <div key={i}>
-                <dt style={{
-                  fontWeight: 600,
-                  fontSize: 'var(--text-sm)',
-                  color: 'var(--primary)',
-                  marginBottom: '2px',
-                }}>
-                  {g.term}
-                </dt>
-                <dd style={{
-                  color: 'var(--text-muted)',
-                  fontSize: 'var(--text-sm)',
-                  lineHeight: 1.6,
-                  marginLeft: 0,
-                }}>
-                  {g.definition}
-                </dd>
-              </div>
+      {/* ── reference sections ── */}
+      {sections.length > 0 && (
+        <div className="gd-body">
+          <nav className="gd-nav" aria-label="On this page">
+            <ol>
+              {sections.map(s => (
+                <li key={s.id}>
+                  <a href={`#${s.id}`} aria-current={active === s.id ? 'true' : undefined}>{s.title}</a>
+                </li>
+              ))}
+            </ol>
+          </nav>
+          <div className="gd-sections">
+            {sections.map(s => (
+              <section key={s.id} id={s.id} className="gd-section">
+                <h2>{s.title}</h2>
+                {s.body}
+              </section>
             ))}
-          </dl>
-        </Section>
+            {game.created_at && (
+              <p className="gd-added">
+                Added {new Date(game.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
+              </p>
+            )}
+          </div>
+        </div>
       )}
 
-      {/* ── metadata footer ── */}
-      {game.created_at && (
-        <p style={{
-          fontSize: 'var(--text-xs)',
-          color: 'var(--text-faint, var(--text-muted))',
-          marginTop: 'var(--space-4)',
-          paddingTop: 'var(--space-4)',
-          borderTop: '1px solid var(--divider)',
-        }}>
-          Added {new Date(game.created_at).toLocaleDateString(undefined, {
-            year: 'numeric', month: 'long', day: 'numeric',
-          })}
-        </p>
-      )}
-      {/* ── judge chat ── */}
       {game.status === 'ready' && <GameJudgeChat game_id={id} />}
     </div>
   )

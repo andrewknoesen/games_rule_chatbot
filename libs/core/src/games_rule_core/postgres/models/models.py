@@ -41,6 +41,7 @@ class Game(SQLModel, table=True):
     publisher: Optional[str] = None
     designer: Optional[str] = None
     cover_path: Optional[str] = None
+    bgg_id: Optional[int] = None  # BoardGameGeek id, set when the cover came from BGG
 
     components: JsonList = _jsonb()
     setup: JsonList = _jsonb()

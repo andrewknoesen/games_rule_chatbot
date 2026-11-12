@@ -47,6 +47,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in deploy/.env}
       GOOGLE_API_KEY: ${GOOGLE_API_KEY:?set GOOGLE_API_KEY in deploy/.env}
       DATA_DIR: /data
+      BGG_TOKEN: ${BGG_TOKEN:-}
     volumes:
       # Rulebook PDFs and cover images (paths in the DB are relative to it).
       - files:/data

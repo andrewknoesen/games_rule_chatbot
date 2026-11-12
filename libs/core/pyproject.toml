@@ -1,6 +1,6 @@
 [project]
 name = "games_rule_core"
-version = "0.3.1"
+version = "0.4.0"
 description = "Storage controller component for games_rule_chatbot."
 authors = [
     { name = "Andrew Knoesen", email = "andrewknoesen@gmail.com" }
@@ -16,6 +16,7 @@ dependencies = [
     "google-adk>=2.14.0",
     "google-genai>=2.34.0",
     "pymupdf>=2.1",
+    "httpx>=0.28",
 ]
 
 [build-system]

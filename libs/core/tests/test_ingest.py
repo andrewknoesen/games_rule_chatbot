@@ -13,6 +13,7 @@ import pymupdf  # noqa: E402
 from games_rule_core.ai.ingest import (  # noqa: E402
     GameExtract,
     clean_fields,
+    cover_name,
     parse_pdf,
     split_text,
 )
@@ -82,3 +83,9 @@ def test_clean_fields_drops_values_that_break_constraints() -> None:
     assert d["name"] == "Catan"
     assert d["min_players"] == 3 and d["max_players"] is None
     assert d["min_age"] is None and d["complexity_rating"] is None
+
+
+def test_cover_name() -> None:
+    assert cover_name(b"\xff\xd8\xff\xe0rest") == "cover.jpg"
+    assert cover_name(b"\x89PNG\r\n\x1a\nrest") == "cover.png"
+    assert cover_name(b"RIFF\x00\x00\x00\x00WEBPrest") == "cover.webp"

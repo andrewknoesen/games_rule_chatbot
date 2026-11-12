@@ -1,5 +1,8 @@
 # Release Notes
 
+## 0.3.2
+- Pins games_rule_core 0.4.0 (BGG box art); game responses include `bgg_id`.
+
 ## 0.3.1
 - `GET /games/{id}/cover` sends the content type that matches the stored file.
 

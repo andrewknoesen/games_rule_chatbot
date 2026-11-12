@@ -2,6 +2,6 @@
 # workspace (see Dockerfile); bump `version` to publish a new image.
 [project]
 name = "api_image"
-version = "0.2.1"
+version = "0.3.0"
 description = "Container image running the games rule API"
 requires-python = ">=3.11"

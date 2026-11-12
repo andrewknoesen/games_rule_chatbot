@@ -1,6 +1,6 @@
 [project]
 name = "games_rule_api"
-version = "0.3.1"
+version = "0.3.2"
 description = "FastAPI component for games_rule_chatbot."
 authors = [
     { name = "Andrew Knoesen", email = "andrewknoesen@gmail.com" }
@@ -13,7 +13,7 @@ dependencies = [
     "pydantic-settings",
     "polyfactory",
     "annotated-doc>=0.0.3",
-    "games-rule-core==0.3.1",
+    "games-rule-core==0.4.0",
     "python-multipart>=0.0.33",
 ]
 

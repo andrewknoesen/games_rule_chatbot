@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS games (
   publisher VARCHAR(255),
   designer VARCHAR(255),
   cover_path VARCHAR(500),
+  bgg_id INTEGER,
   -- Structured rules, shaped for the frontend's detail page.
   components JSONB,
   setup JSONB,

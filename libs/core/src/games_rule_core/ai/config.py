@@ -24,6 +24,9 @@ class AISettings(BaseSettings):
     # rulebooks get misclassified.
     cover_min_image_ratio: float = 0.5
     data_dir: Path = Path("/data")
+    # Approved BoardGameGeek app token (boardgamegeek.com/applications);
+    # empty = no BGG box art.
+    bgg_token: str = ""
 
 
 settings = AISettings()

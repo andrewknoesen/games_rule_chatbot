@@ -1,5 +1,10 @@
 # Release Notes
 
+## 0.4.0
+- Covers come from BoardGameGeek box art when `BGG_TOKEN` is set (`games_rule_core.ai.bgg`), before the page-1 render or a generated image. The game's BGG id is stored in the new `games.bgg_id` column.
+- `python -m games_rule_core.ai.ingest` swaps in BGG box art for games ingested before.
+- WebP covers are saved as `cover.webp`; a replaced cover file is deleted.
+
 ## 0.3.1
 - Generated covers are saved as `cover.jpg` (Gemini returns JPEG); page renders stay `cover.png`.
 

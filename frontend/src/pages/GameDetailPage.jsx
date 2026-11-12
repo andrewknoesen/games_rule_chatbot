@@ -113,29 +113,42 @@ export default function GameDetailPage() {
         flexWrap: 'wrap',
       }}>
         <h1 style={{ fontSize: 'var(--text-xl)', fontWeight: 700 }}>{game.name}</h1>
-        <a
-          href={`/api/games/${id}/rulebook`}
-          target="_blank"
-          rel="noreferrer"
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 'var(--space-2)',
-            fontSize: 'var(--text-sm)',
-            color: 'var(--primary)',
-            background: 'var(--primary-hl)',
-            padding: 'var(--space-2) var(--space-3)',
-            borderRadius: 'var(--radius-md)',
-            textDecoration: 'none',
-            flexShrink: 0,
-          }}
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-            <polyline points="14 2 14 8 20 8" />
-          </svg>
-          Rulebook PDF
-        </a>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', flexWrap: 'wrap' }}>
+          {game.bgg_id && (
+            <a
+              href={`https://boardgamegeek.com/boardgame/${game.bgg_id}`}
+              target="_blank"
+              rel="noreferrer"
+              title="Box art from BoardGameGeek"
+              style={{ fontSize: 'var(--text-sm)', color: 'var(--text-muted)' }}
+            >
+              Powered by BGG
+            </a>
+          )}
+          <a
+            href={`/api/games/${id}/rulebook`}
+            target="_blank"
+            rel="noreferrer"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 'var(--space-2)',
+              fontSize: 'var(--text-sm)',
+              color: 'var(--primary)',
+              background: 'var(--primary-hl)',
+              padding: 'var(--space-2) var(--space-3)',
+              borderRadius: 'var(--radius-md)',
+              textDecoration: 'none',
+              flexShrink: 0,
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+            </svg>
+            Rulebook PDF
+          </a>
+        </div>
       </div>
 
       {game.status === 'processing' && (

@@ -62,6 +62,8 @@ Query examples: [docs/db_query_ref.md](../../../docs/db_query_ref.md).
 (tags list: `curl -s` the GHCR tags API or check GitHub releases `api_image-*`),
 then `up -d`. Remove the line to return to `latest`.
 
+**BGG box art**: covers come from BoardGameGeek only when `BGG_TOKEN` is in the host's `deploy/.env`. The user registers a non-commercial app at https://boardgamegeek.com/applications and creates the token there; the user enters it, never Claude. After adding it, run `docker compose -f deploy/compose.yaml up -d api`, then backfill older games with `docker compose -f deploy/compose.yaml exec api python3 -m games_rule_core.ai.ingest`. A `401` in the api logs means the token is missing or revoked; ingestion then falls back to the rulebook or a generated cover.
+
 **Backup** (do this before any schema change or Postgres major bump). Take the DB and the files together:
 ```bash
 ssh homelab 'mkdir -p ~/backups && cd ~/Documents/Projects/games_rule_chatbot && docker compose -f deploy/compose.yaml exec -T postgres pg_dump -U gamesuser games | gzip > ~/backups/games_rule_chatbot-$(date +%F).sql.gz && docker run --rm -v games_rule_chatbot_files:/data:ro alpine tar czf - -C /data . > ~/backups/games_rule_chatbot-files-$(date +%F).tgz'

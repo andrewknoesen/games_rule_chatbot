@@ -16,6 +16,7 @@ from pydantic import BaseModel
 from sqlalchemy import select, text
 from sqlmodel import col
 
+from games_rule_core.ai.bgg import find_cover
 from games_rule_core.ai.config import client, data_path, settings
 from games_rule_core.ai.rag import store_chunks
 from games_rule_core.postgres.models.models import Game, GameDocument
@@ -248,6 +249,23 @@ async def generate_cover(game: GameExtract) -> Optional[bytes]:
 # --- Orchestration ---
 
 
+def cover_name(data: bytes) -> str:
+    """File name with the extension the cover route serves the type from."""
+    if data[:2] == b"\xff\xd8":
+        return "cover.jpg"
+    if data[:4] == b"RIFF" and data[8:12] == b"WEBP":
+        return "cover.webp"
+    return "cover.png"
+
+
+def save_cover(game: Game, folder: Path, data: bytes) -> None:
+    rel = str(folder / cover_name(data))
+    data_path(rel).write_bytes(data)
+    if game.cover_path and game.cover_path != rel:
+        data_path(game.cover_path).unlink(missing_ok=True)
+    game.cover_path = rel
+
+
 async def ingest_game(game_id: int) -> None:
     async with async_session_maker() as session:
         game = await session.get(Game, game_id)
@@ -275,18 +293,23 @@ async def ingest_game(game_id: int) -> None:
                 raise ValueError("no readable text found in the PDF")
             await store_chunks(game_id, sorted(chunks))
 
-            cover = parsed.cover_png
+            # Cover: BGG box art, else page 1 if it is a cover, else generated.
+            # A missing cover must not fail the game.
+            cover = None
+            try:
+                found = await find_cover(extract.name, extract.year_published)
+                if found:
+                    game.bgg_id, cover = found
+            except Exception:
+                logger.exception("BGG lookup failed for game %s", game_id)
+            cover = cover or parsed.cover_png
             if cover is None:
                 try:
                     cover = await generate_cover(extract)
-                except Exception:  # a missing cover must not fail the game
+                except Exception:
                     logger.exception("cover generation failed for game %s", game_id)
             if cover:
-                # Generated covers come back as JPEG; renders are PNG.
-                name = "cover.jpg" if cover[:2] == b"\xff\xd8" else "cover.png"
-                rel = str(Path(doc.file_path).parent / name)
-                data_path(rel).write_bytes(cover)
-                game.cover_path = rel
+                save_cover(game, Path(doc.file_path).parent, cover)
 
             for key, value in clean_fields(extract).items():
                 if value is not None or key != "name":
@@ -299,3 +322,34 @@ async def ingest_game(game_id: int) -> None:
             )
             game.status, game.error = "failed", str(exc)[:1000]
         await session.commit()
+
+
+async def backfill_bgg_covers() -> None:
+    """Swap in BGG box art for ready games that have none yet. Run on the
+    host after adding BGG_TOKEN:
+    docker compose -f deploy/compose.yaml exec api python3 -m games_rule_core.ai.ingest
+    """
+    async with async_session_maker() as session:
+        games = (
+            await session.execute(
+                select(Game).where(
+                    col(Game.status) == "ready", col(Game.bgg_id).is_(None)
+                )
+            )
+        ).scalars()
+        for game in games:
+            found = await find_cover(game.name, game.year_published)
+            if not found:
+                print(f"{game.id} {game.name}: not on BGG")
+                continue
+            game.bgg_id, cover = found
+            if cover:
+                save_cover(game, Path("games") / str(game.id), cover)
+            print(f"{game.id} {game.name}: BGG {game.bgg_id}, image={bool(cover)}")
+        await session.commit()
+
+
+if __name__ == "__main__":
+    if not settings.bgg_token:
+        raise SystemExit("BGG_TOKEN is not set")
+    asyncio.run(backfill_bgg_covers())

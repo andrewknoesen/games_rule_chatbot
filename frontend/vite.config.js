@@ -8,7 +8,8 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: 'http://localhost:8000',
+        // API_TARGET=http://192.168.0.200:8720 to develop against the homelab API.
+        target: process.env.API_TARGET || 'http://localhost:8000',
         rewrite: path => path.replace(/^\/api/, '')
       }
     }

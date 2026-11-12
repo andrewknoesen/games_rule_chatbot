@@ -1,0 +1,162 @@
+/* Add-a-game page. Scoped under .add; uses only the tokens in index.css. */
+
+.add {
+  max-width: 760px;
+  --add-soft: color-mix(in oklch, var(--text) 74%, var(--bg));
+}
+.add ::selection { background: var(--primary-hl); color: var(--text); }
+.add .sr-only {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap;
+}
+.add-soft { color: var(--add-soft); font-size: var(--text-sm); }
+
+.add-title {
+  font-size: clamp(2rem, 1.4rem + 2.2vw, 3rem);
+  font-weight: 700; letter-spacing: -0.025em; line-height: 1.05;
+}
+.add-lede { margin-top: var(--space-3); max-width: 60ch; color: var(--add-soft); }
+
+/* tabs: a segmented control */
+.add-tabs {
+  display: inline-flex; gap: 2px; margin-top: var(--space-8);
+  padding: 3px; border-radius: var(--radius-lg);
+  background: var(--surface-offset); border: 1px solid var(--divider);
+}
+.add-tabs button {
+  padding: var(--space-2) var(--space-4); border-radius: var(--radius-md);
+  font-size: var(--text-sm); font-weight: 600; color: var(--add-soft);
+  transition: background var(--transition), color var(--transition);
+}
+.add-tabs button:hover { color: var(--text); }
+.add-tabs button[aria-selected="true"] {
+  background: var(--surface); color: var(--text); box-shadow: var(--shadow-sm);
+}
+.add-panel { margin-top: var(--space-6); }
+
+/* search */
+.add-search { display: flex; gap: var(--space-3); }
+.add-search input {
+  flex: 1; min-width: 0;
+  font: inherit; color: var(--text);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md); border: 1px solid var(--border);
+  background: var(--surface);
+  transition: border-color var(--transition);
+}
+.add-search input::placeholder { color: var(--add-soft); opacity: 0.8; }
+.add-search input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-hl); }
+
+.add-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2);
+  padding: var(--space-3) var(--space-5); border-radius: var(--radius-md);
+  background: var(--primary); color: var(--bg);
+  font-size: var(--text-sm); font-weight: 600; white-space: nowrap;
+  transition: background var(--transition), transform var(--transition), opacity var(--transition);
+}
+.add-btn:hover:not(:disabled) { background: var(--primary-hover); }
+.add-btn:active:not(:disabled) { transform: translateY(1px); }
+.add-btn:disabled { opacity: 0.6; cursor: progress; }
+.add-btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--border); }
+.add-btn.ghost:hover:not(:disabled) { background: var(--surface-offset); }
+.add-btn.wide { width: 100%; margin-top: var(--space-4); }
+
+.add-error { margin-top: var(--space-3); color: var(--error); font-size: var(--text-sm); }
+.add-empty { margin-top: var(--space-6); }
+
+.add-results {
+  list-style: none; margin-top: var(--space-6);
+  display: grid; gap: var(--space-2);
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+}
+.add-results button {
+  width: 100%; text-align: left;
+  display: grid; grid-template-columns: 56px 1fr; gap: var(--space-4); align-items: center;
+  padding: var(--space-3); border-radius: var(--radius-lg);
+  border: 1px solid transparent;
+  transition: background var(--transition), border-color var(--transition);
+}
+.add-results button:hover { background: var(--surface); border-color: var(--divider); }
+.add-results img, .add-thumb-empty {
+  width: 56px; height: 56px; object-fit: contain; border-radius: var(--radius-sm);
+  background: var(--surface-offset);
+}
+.add-thumb-empty { display: block; }
+.add-result-text { display: grid; gap: 2px; min-width: 0; }
+.add-result-text strong { font-weight: 600; line-height: 1.3; }
+
+.add-credit { margin-top: var(--space-8); font-size: var(--text-xs); color: var(--add-soft); }
+.add-credit a, .add-link {
+  color: var(--primary); text-decoration: underline; text-underline-offset: 3px;
+  text-decoration-color: color-mix(in oklch, var(--primary) 40%, transparent);
+}
+
+/* picked game and the steps after it */
+.add-back {
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  font-size: var(--text-sm); color: var(--add-soft); margin-bottom: var(--space-5);
+}
+.add-back:hover { color: var(--text); }
+.add-picked { display: flex; align-items: center; gap: var(--space-4); }
+.add-picked img { width: 64px; height: 64px; object-fit: contain; border-radius: var(--radius-md); background: var(--surface-offset); }
+.add-picked div { display: grid; gap: 2px; }
+.add-picked strong { font-size: var(--text-lg); font-weight: 700; letter-spacing: -0.01em; }
+
+.add-finding {
+  margin-top: var(--space-6); padding: var(--space-6);
+  border-radius: var(--radius-xl); background: var(--surface); border: 1px solid var(--divider);
+}
+.add-finding p + p { margin-top: var(--space-1); }
+.add-progress {
+  height: 4px; border-radius: 999px; overflow: hidden;
+  background: var(--primary-hl); margin-bottom: var(--space-5);
+}
+.add-progress span {
+  display: block; width: 35%; height: 100%; border-radius: inherit; background: var(--primary);
+  animation: add-sweep 1.6s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+@keyframes add-sweep { from { transform: translateX(-100%); } to { transform: translateX(290%); } }
+
+.add-candidate {
+  margin-top: var(--space-6);
+  display: grid; grid-template-columns: 200px 1fr; gap: var(--space-6); align-items: start;
+  padding: var(--space-6); border-radius: var(--radius-xl);
+  background: var(--surface); border: 1px solid var(--divider);
+}
+.add-candidate img {
+  width: 100%; border-radius: var(--radius-md); background: #fff;
+  box-shadow: 0 10px 28px -10px oklch(0.15 0.02 60 / 0.4);
+}
+.add-candidate h2 { font-size: var(--text-lg); font-weight: 700; margin-bottom: var(--space-4); }
+.add-meta { display: grid; gap: var(--space-2); margin-bottom: var(--space-4); }
+.add-meta div { display: grid; grid-template-columns: 4rem 1fr; gap: var(--space-3); }
+.add-meta dt { color: var(--add-soft); font-size: var(--text-sm); }
+.add-meta dd { font-weight: 500; min-width: 0; }
+.add-file { overflow-wrap: anywhere; }
+.add-actions { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-top: var(--space-6); }
+
+.add-missing { margin-top: var(--space-6); display: grid; gap: var(--space-5); }
+.add-missing p { line-height: 1.6; max-width: 62ch; }
+.add-missing .add-error { display: inline; margin: 0; }
+
+/* drop zone */
+.add-drop {
+  width: 100%; display: grid; justify-items: center; gap: var(--space-2);
+  padding: var(--space-12) var(--space-6); text-align: center;
+  border: 2px dashed var(--border); border-radius: var(--radius-xl);
+  background: var(--surface); color: var(--add-soft);
+  transition: border-color var(--transition), background var(--transition), color var(--transition);
+}
+.add-drop strong { color: var(--text); font-weight: 600; overflow-wrap: anywhere; }
+.add-drop:hover, .add-drop.over { border-color: var(--primary); color: var(--primary); }
+.add-drop.over { background: var(--primary-hl); }
+.add-drop.has-file { border-style: solid; border-color: var(--primary); }
+
+@media (max-width: 640px) {
+  .add-tabs { display: flex; }
+  .add-tabs button { flex: 1; padding: var(--space-2); }
+  .add-results { grid-template-columns: 1fr; }
+  .add-candidate { grid-template-columns: 1fr; padding: var(--space-5); }
+  .add-candidate img { max-width: 220px; }
+  .add-search .add-btn { padding: var(--space-3) var(--space-4); }
+}

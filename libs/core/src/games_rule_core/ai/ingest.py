@@ -16,7 +16,7 @@ from pydantic import BaseModel
 from sqlalchemy import select, text
 from sqlmodel import col
 
-from games_rule_core.ai.bgg import find_cover
+from games_rule_core.ai.bgg import download_image, find_cover, get_game
 from games_rule_core.ai.config import client, data_path, settings
 from games_rule_core.ai.rag import store_chunks
 from games_rule_core.postgres.models.models import Game, GameDocument
@@ -295,11 +295,17 @@ async def ingest_game(game_id: int) -> None:
 
             # Cover: BGG box art, else page 1 if it is a cover, else generated.
             # A missing cover must not fail the game.
+            # A game picked on BGG keeps that game's name, year and box art.
+            picked = game.bgg_id is not None
             cover = None
             try:
-                found = await find_cover(extract.name, extract.year_published)
-                if found:
-                    game.bgg_id, cover = found
+                if game.bgg_id is not None:
+                    info = await get_game(game.bgg_id)
+                    cover = await download_image(info["image"] if info else None)
+                else:
+                    found = await find_cover(extract.name, extract.year_published)
+                    if found:
+                        game.bgg_id, cover = found
             except Exception:
                 logger.exception("BGG lookup failed for game %s", game_id)
             cover = cover or parsed.cover_png
@@ -312,6 +318,8 @@ async def ingest_game(game_id: int) -> None:
                 save_cover(game, Path(doc.file_path).parent, cover)
 
             for key, value in clean_fields(extract).items():
+                if picked and key in ("name", "year_published"):
+                    continue
                 if value is not None or key != "name":
                     setattr(game, key, value)
             game.status, game.error = "ready", None

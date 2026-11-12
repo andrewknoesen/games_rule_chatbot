@@ -33,7 +33,7 @@ export default function Layout({ children }) {
           </span>
         </Link>
         <Link to="/upload" style={{ fontSize: 'var(--text-sm)', color: 'var(--text-muted)', fontWeight: 500 }}>
-          + Upload PDF
+          + Add game
         </Link>
         <button
           onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}

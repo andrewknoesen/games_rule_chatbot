@@ -1,18 +1,24 @@
 import shutil
-from typing import Any
+from typing import Any, Optional
 
+import httpx
 from fastapi import (
     APIRouter,
     BackgroundTasks,
     Depends,
+    Form,
     HTTPException,
+    Query,
     UploadFile,
     status,
 )
 from fastapi.responses import FileResponse
 from games_rule_core.ai.agent import ask
+from games_rule_core.ai.bgg import BggUnavailable, get_game as get_bgg_game
+from games_rule_core.ai.bgg import search_games
 from games_rule_core.ai.config import data_path
 from games_rule_core.ai.ingest import ingest_game
+from games_rule_core.ai.rulebook import drop_candidate, find_rulebook, load_candidate
 from games_rule_core.postgres.models.models import Game, GameDocument
 from games_rule_core.postgres.session import get_async_session
 from pydantic import BaseModel, Field
@@ -39,42 +45,38 @@ class Question(BaseModel):
     question: str = Field(min_length=1, max_length=2000)
 
 
-async def _game_or_404(session: AsyncSession, game_id: int) -> Game:
-    game = await session.get(Game, game_id)
-    if game is None:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Game not found")
-    return game
+class FromBgg(BaseModel):
+    bgg_id: int
+    candidate_id: str = Field(min_length=32, max_length=32)
 
 
-@router.get("/games")
-async def list_games(
-    session: AsyncSession = Depends(get_async_session),
-) -> list[dict[str, Any]]:
-    games = (
-        await session.execute(select(Game).order_by(Game.created_at.desc()))  # type: ignore[union-attr]
-    ).scalars()
-    return [g.model_dump(exclude=DETAIL_ONLY) for g in games]
-
-
-@router.post("/games/upload", status_code=status.HTTP_202_ACCEPTED)
-async def upload_rulebook(
-    file: UploadFile,
-    background: BackgroundTasks,
-    session: AsyncSession = Depends(get_async_session),
-) -> dict[str, Any]:
-    """Store a rulebook PDF and start ingestion. Poll GET /games/{id} until
-    status is ready or failed."""
-    data = await file.read(MAX_UPLOAD_BYTES + 1)
-    if len(data) > MAX_UPLOAD_BYTES:
-        raise HTTPException(status.HTTP_413_CONTENT_TOO_LARGE, "PDF is over 50 MB")
-    if not data.startswith(b"%PDF"):
+async def _bgg_game(bgg_id: int) -> dict[str, Any]:
+    try:
+        info = await get_bgg_game(bgg_id)
+    except BggUnavailable as exc:
+        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, str(exc)) from exc
+    except httpx.HTTPError as exc:
         raise HTTPException(
-            status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, "Upload a PDF rulebook"
-        )
+            status.HTTP_502_BAD_GATEWAY, f"BoardGameGeek failed: {exc}"
+        ) from exc
+    if info is None or info["type"] != "boardgame":
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "No such game on BGG")
+    return info
 
-    file_name = (file.filename or "rulebook.pdf")[:255]
-    # Placeholder name until extraction finds the real one.
-    game = Game(name=file_name.rsplit(".", 1)[0] or "New game")
+
+async def _add_game(
+    session: AsyncSession,
+    background: BackgroundTasks,
+    data: bytes,
+    file_name: str,
+    bgg: Optional[dict[str, Any]],
+) -> dict[str, Any]:
+    """Store the rulebook, create the game row and start ingestion."""
+    if bgg:
+        game = Game(name=bgg["name"], bgg_id=bgg["id"], year_published=bgg["year"])
+    else:
+        # Placeholder name until extraction finds the real one.
+        game = Game(name=file_name.rsplit(".", 1)[0] or "New game")
     session.add(game)
     await session.flush()
     if game.id is None:  # flush always assigns it; narrows the type
@@ -100,6 +102,103 @@ async def upload_rulebook(
     # startup hook marks it failed). Add a worker if uploads get frequent.
     background.add_task(ingest_game, game.id)
     return {"id": game.id, "status": game.status}
+
+
+async def _game_or_404(session: AsyncSession, game_id: int) -> Game:
+    game = await session.get(Game, game_id)
+    if game is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Game not found")
+    return game
+
+
+@router.get("/games")
+async def list_games(
+    session: AsyncSession = Depends(get_async_session),
+) -> list[dict[str, Any]]:
+    games = (
+        await session.execute(select(Game).order_by(Game.created_at.desc()))  # type: ignore[union-attr]
+    ).scalars()
+    return [g.model_dump(exclude=DETAIL_ONLY) for g in games]
+
+
+@router.post("/games/upload", status_code=status.HTTP_202_ACCEPTED)
+async def upload_rulebook(
+    file: UploadFile,
+    background: BackgroundTasks,
+    bgg_id: Optional[int] = Form(None),
+    session: AsyncSession = Depends(get_async_session),
+) -> dict[str, Any]:
+    """Store a rulebook PDF and start ingestion. With bgg_id, the game takes
+    that BGG game's name, year and box art. Poll GET /games/{id} until
+    status is ready or failed."""
+    data = await file.read(MAX_UPLOAD_BYTES + 1)
+    if len(data) > MAX_UPLOAD_BYTES:
+        raise HTTPException(status.HTTP_413_CONTENT_TOO_LARGE, "PDF is over 50 MB")
+    if not data.startswith(b"%PDF"):
+        raise HTTPException(
+            status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, "Upload a PDF rulebook"
+        )
+
+    file_name = (file.filename or "rulebook.pdf")[:255]
+    bgg = await _bgg_game(bgg_id) if bgg_id is not None else None
+    return await _add_game(session, background, data, file_name, bgg)
+
+
+@router.get("/bgg/search")
+async def bgg_search(
+    q: str = Query(min_length=2, max_length=100),
+) -> list[dict[str, Any]]:
+    """Board games on BoardGameGeek matching q, best match first."""
+    try:
+        games = await search_games(q)
+    except BggUnavailable as exc:
+        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, str(exc)) from exc
+    except httpx.HTTPError as exc:
+        raise HTTPException(
+            status.HTTP_502_BAD_GATEWAY, f"BoardGameGeek failed: {exc}"
+        ) from exc
+    keys = ("id", "name", "year", "thumbnail", "publishers")
+    return [{k: g[k] for k in keys} for g in games]
+
+
+@router.post("/bgg/{bgg_id}/rulebook")
+async def bgg_find_rulebook(bgg_id: int) -> dict[str, Any]:
+    """Look for the game's official rulebook PDF on the web. Takes up to a
+    minute. candidate is null when nothing usable was found."""
+    game = await _bgg_game(bgg_id)
+    try:
+        candidate = await find_rulebook(game)
+    except Exception as exc:
+        raise HTTPException(
+            status.HTTP_502_BAD_GATEWAY, f"Rulebook search failed: {exc}"
+        ) from exc
+    summary = {k: game[k] for k in ("id", "name", "year", "thumbnail", "publishers")}
+    return {"game": summary, "candidate": candidate}
+
+
+@router.get("/candidates/{candidate_id}/preview")
+async def candidate_preview(candidate_id: str) -> FileResponse:
+    candidate = load_candidate(candidate_id)
+    if candidate is None or not candidate["preview_path"].exists():
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "No such rulebook candidate")
+    return FileResponse(candidate["preview_path"], media_type="image/png")
+
+
+@router.post("/games/from-bgg", status_code=status.HTTP_202_ACCEPTED)
+async def add_from_bgg(
+    body: FromBgg,
+    background: BackgroundTasks,
+    session: AsyncSession = Depends(get_async_session),
+) -> dict[str, Any]:
+    """Add a BGG game using the rulebook the user confirmed."""
+    candidate = load_candidate(body.candidate_id)
+    if candidate is None or candidate["bgg_id"] != body.bgg_id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Rulebook expired; search again")
+    bgg = await _bgg_game(body.bgg_id)
+    data = candidate["pdf_path"].read_bytes()
+    result = await _add_game(session, background, data, candidate["file_name"], bgg)
+    drop_candidate(body.candidate_id)
+    return result
 
 
 @router.get("/games/{game_id}", response_model=Game)
